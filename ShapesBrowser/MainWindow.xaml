@@ -43,7 +43,7 @@
                                     <Binding Path="."/>
                                 </MultiBinding>
                             </HierarchicalDataTemplate.ItemsSource>
-                            <TextBlock Text="ShapeCollection"/>
+                            <TextBlock Text="{Binding Path=ID, StringFormat=ShapeCollection {0}}"/>
                         </HierarchicalDataTemplate>
                         <HierarchicalDataTemplate 
                                 DataType="{x:Type src:ChildShapes}"
@@ -60,13 +60,13 @@
                                     <Binding Path="Text"/>
                                 </MultiBinding>
                             </HierarchicalDataTemplate.ItemsSource>
-                            <TextBlock Text="TextShape"/>
+                            <TextBlock Text="{Binding Path=ID, StringFormat=TextShape {0}}"/>
                         </HierarchicalDataTemplate>
                         
                         <!-- FREEHANDSHAPE -->
                         <DataTemplate 
                                 DataType="{x:Type shapes:FreeHandShape}">
-                            <TextBlock Text="Freehand shape"/>
+                            <TextBlock Text="{Binding Path=ID, StringFormat=FreeHandShape {0}}"/>
                         </DataTemplate>
                         
                         <!-- TRANSFORMCOLLECTION -->
@@ -98,7 +98,7 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <TreeView Grid.Row="0" Name="shapesTree">
+                    <TreeView Grid.Row="0" Name="shapesTree" SelectedItemChanged="shapesTree_SelectedItemChanged">
                         <TreeViewItem 
                             ItemsSource="{Binding Source={StaticResource pageShapes}}"
                             Header="Page shapes"/>
