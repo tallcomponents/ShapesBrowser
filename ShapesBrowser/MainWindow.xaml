@@ -1,0 +1,126 @@
+﻿<Window x:Class="WpfApplication1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shapes="clr-namespace:TallComponents.PDF.Shapes;assembly=TallComponents.PDF.Kit"
+        xmlns:transforms="clr-namespace:TallComponents.PDF.Transforms;assembly=TallComponents.PDF.Kit"
+        xmlns:src="clr-namespace:WpfApplication1"
+        Title="Shapes browser" Height="619" Width="841">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open" Click="MenuItem_Click"/>
+                <MenuItem Header="_Close"/>
+                <MenuItem Header="_Save"/>
+            </MenuItem>
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom">Idle</StatusBar>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="3*"/>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <DockPanel LastChildFill="True">
+                    <DockPanel.Resources>
+                        <shapes:ShapeCollection x:Key="pageShapes"/>
+                        <src:ShapeCollectionConverter x:Key="shapeCollectionConverter"/>
+                        <src:SimpleConverter x:Key="simpleConverter"/>
+                        
+                        <!-- SHAPECOLLECTION-->
+                        <HierarchicalDataTemplate 
+                                DataType="{x:Type shapes:ShapeCollection}">
+                            <HierarchicalDataTemplate.ItemsSource>
+                                <MultiBinding Converter="{StaticResource shapeCollectionConverter}">
+                                    <Binding Path="Transform"/>
+                                    <Binding Path="."/>
+                                </MultiBinding>
+                            </HierarchicalDataTemplate.ItemsSource>
+                            <TextBlock Text="ShapeCollection"/>
+                        </HierarchicalDataTemplate>
+                        <HierarchicalDataTemplate 
+                                DataType="{x:Type src:ChildShapes}"
+                                ItemsSource="{Binding Path=Shapes}">
+                            <TextBlock Text="{Binding Path=Display}"/>
+                        </HierarchicalDataTemplate>
+                        
+                        <!-- TEXTSHAPE -->
+                        <HierarchicalDataTemplate 
+                                DataType="{x:Type shapes:TextShape}">
+                            <HierarchicalDataTemplate.ItemsSource>
+                                <MultiBinding Converter="{StaticResource simpleConverter}">
+                                    <Binding Path="Transform"/>
+                                    <Binding Path="Text"/>
+                                </MultiBinding>
+                            </HierarchicalDataTemplate.ItemsSource>
+                            <TextBlock Text="TextShape"/>
+                        </HierarchicalDataTemplate>
+                        
+                        <!-- FREEHANDSHAPE -->
+                        <DataTemplate 
+                                DataType="{x:Type shapes:FreeHandShape}">
+                            <TextBlock Text="Freehand shape"/>
+                        </DataTemplate>
+                        
+                        <!-- TRANSFORMCOLLECTION -->
+                        <HierarchicalDataTemplate 
+                                DataType="{x:Type transforms:TransformCollection}"
+                                ItemsSource="{Binding Path=.}">
+                            <TextBlock Text="TransformCollection"/>
+                        </HierarchicalDataTemplate>
+
+                        <!-- TRANSLATETRANSFORM -->
+                        <DataTemplate 
+                                DataType="{x:Type transforms:TranslateTransform}">
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="Translate [{0} {1}]">
+                                        <Binding Path="X"/>
+                                        <Binding Path="Y"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+
+                    </DockPanel.Resources>
+
+                    <ComboBox DockPanel.Dock="Top" Name="pagesList" SelectionChanged="pagesList_SelectionChanged">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=Index, StringFormat=Page {0}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TreeView Grid.Row="0" Name="shapesTree">
+                        <TreeViewItem 
+                            ItemsSource="{Binding Source={StaticResource pageShapes}}"
+                            Header="Page shapes"/>
+                    </TreeView>
+                </DockPanel>
+
+                <GridSplitter Grid.Row="1"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Stretch"
+                      ShowsPreview="True"
+                      Height="2"
+                      />
+
+            </Grid>
+
+            <GridSplitter Grid.Column="1"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Stretch"
+              ShowsPreview="True"
+              Width="2"
+              />
+            <DocumentViewer Grid.Column="2" Name="documentViewer"></DocumentViewer>
+        </Grid>
+    </DockPanel>
+</Window>
