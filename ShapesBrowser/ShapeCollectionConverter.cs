@@ -7,7 +7,7 @@ using System.Windows.Data;
 
 using TallComponents.PDF.Shapes;
 
-namespace WpfApplication1
+namespace TallComponents.Samples.ShapesBrowser
 {
     public class ChildShapes
     {

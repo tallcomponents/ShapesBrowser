@@ -17,7 +17,7 @@ using Microsoft.Win32;
 
 using pdf = TallComponents.PDF;
 
-namespace WpfApplication1
+namespace TallComponents.Samples.ShapesBrowser
 {
 
     /// <summary>

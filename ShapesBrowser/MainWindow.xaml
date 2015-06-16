@@ -1,9 +1,9 @@
-﻿<Window x:Class="WpfApplication1.MainWindow"
+﻿<Window x:Class="TallComponents.Samples.ShapesBrowser.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:shapes="clr-namespace:TallComponents.PDF.Shapes;assembly=TallComponents.PDF.Kit"
         xmlns:transforms="clr-namespace:TallComponents.PDF.Transforms;assembly=TallComponents.PDF.Kit"
-        xmlns:src="clr-namespace:WpfApplication1"
+        xmlns:src="clr-namespace:TallComponents.Samples.ShapesBrowser"
         Title="Shapes browser" Height="619" Width="841">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
