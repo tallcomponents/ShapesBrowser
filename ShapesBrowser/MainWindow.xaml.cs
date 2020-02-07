@@ -99,11 +99,11 @@ namespace TallComponents.Samples.ShapesBrowser
       {
          using (FileStream file = new FileStream(path, FileMode.Open, FileAccess.Read))
          {
-            pdf.Rasterizer.Document document = new pdf.Rasterizer.Document(file);
-            pdf.Rasterizer.Page page = document.Pages[index];
+            pdf.Document document = new pdf.Document(file);
+            pdf.Page page = document.Pages[index];
 
-            pdf.Rasterizer.Configuration.RenderSettings renderSettings = new pdf.Rasterizer.Configuration.RenderSettings();
-            pdf.Rasterizer.Diagnostics.Summary summary = new pdf.Rasterizer.Diagnostics.Summary();
+            pdf.Configuration.RenderSettings renderSettings = new pdf.Configuration.RenderSettings();
+            pdf.Diagnostics.Summary summary = new pdf.Diagnostics.Summary();
             pdf.Rasterizer.ConvertToWpfOptions convertOptions = new pdf.Rasterizer.ConvertToWpfOptions();
             FixedDocument fixedDocument = document.ConvertToWpf(renderSettings, convertOptions, index, index, summary);
 
@@ -121,15 +121,15 @@ namespace TallComponents.Samples.ShapesBrowser
 
             switch (page.Orientation)
             {
-               case pdf.Rasterizer.Orientation.Rotate90:
+               case pdf.Orientation.Rotate90:
                   group.Children.Insert(0, new RotateTransform(90));
                   group.Children.Insert(0, new TranslateTransform(0, -page.MediaBox.Height));
                   break;
-               case pdf.Rasterizer.Orientation.Rotate180:
+               case pdf.Orientation.Rotate180:
                   group.Children.Insert(0, new RotateTransform(180));
                   group.Children.Insert(0, new TranslateTransform(-page.MediaBox.Width, -page.MediaBox.Height));
                   break;
-               case pdf.Rasterizer.Orientation.Rotate270:
+               case pdf.Orientation.Rotate270:
                   group.Children.Insert(0, new RotateTransform(270));
                   group.Children.Insert(0, new TranslateTransform(-page.MediaBox.Width, 0));
                   break;

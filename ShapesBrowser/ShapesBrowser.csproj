@@ -46,11 +46,8 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="TallComponents.PDF.Kit">
-      <HintPath>..\packages\TallComponents.PDFKit.4.0.49.0\lib\net40-full\TallComponents.PDF.Kit.dll</HintPath>
-    </Reference>
-    <Reference Include="TallComponents.PDF.Rasterizer">
-      <HintPath>..\packages\TallComponents.PDFRasterizer.3.0.121.0\lib\net40\TallComponents.PDF.Rasterizer.dll</HintPath>
+    <Reference Include="TallComponents.PDF.Controls.WPF">
+      <HintPath>..\packages\TallComponents.PDFControls.WPF.3.0.44\lib\net40\TallComponents.PDF.Controls.WPF.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
