@@ -38,7 +38,9 @@ namespace TallComponents.Samples.ShapesBrowser
                 currentPath = dialog.FileName;
                 CloseCurrentFile();
                 MakeTempFile();
-                Open(TempFileName);
+                Open(tempPath);
+                InitializePagesList();
+                pagesList.SelectedIndex = 0;
             }
         }
 
@@ -70,10 +72,8 @@ namespace TallComponents.Samples.ShapesBrowser
 
         void MakeTempFile()
         {
-
-            //Path.GetTempPath();
-            TempFileName = Path.GetTempFileName();
-            File.Copy(currentPath, TempFileName, true);
+            tempPath = Path.GetTempFileName();
+            File.Copy(currentPath, tempPath, true);
         }
 
         void Open(string path)
@@ -82,7 +82,6 @@ namespace TallComponents.Samples.ShapesBrowser
 
             currentDocument = new pdf.Document(currentFile);
             tagsTree.Initialize(currentDocument);
-            InitializePagesList();
         }
 
         void CloseCurrentFile()
@@ -101,7 +100,6 @@ namespace TallComponents.Samples.ShapesBrowser
             if (null != currentDocument)
             {
                 pagesList.ItemsSource = currentDocument.Pages;
-                pagesList.SelectedIndex = 0;
             }
         }
 
@@ -197,12 +195,16 @@ namespace TallComponents.Samples.ShapesBrowser
                 }
 
                 CloseCurrentFile();
-                using (FileStream file = new FileStream(TempFileName, FileMode.Create, FileAccess.Write))
+                using (FileStream file = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
                 {
                     pdfOut.Write(file);
                 }
-                Open(TempFileName);
-                DrawPage(pagesList.SelectedIndex);
+
+                int prevIndex = pagesList.SelectedIndex;
+                Open(tempPath);
+                InitializePagesList();
+                pagesList.SelectedIndex = prevIndex;
+                DrawPage(prevIndex);
             }
         }
 
@@ -225,7 +227,7 @@ namespace TallComponents.Samples.ShapesBrowser
             return sc;
         }
 
-        string TempFileName = "temp.pdf";
+        string tempPath;
         string currentPath;
         pdf.Document currentDocument;
         FileStream currentFile;
