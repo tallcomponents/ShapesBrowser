@@ -87,82 +87,87 @@ namespace TallComponents.Samples.ShapesBrowser
                 AddShapeToTransform(shape as ShapeCollection, parentTransform);
             }
 
-            if (shape is ShapeCollection)
+            switch (shape)
             {
-                var shapeCollection = shape as ShapeCollection;
-                var transform = new TransformGroup();
-                transform.Children.Add(parentTransform);
-                AddShapeToTransform(shapeCollection, transform);
-                foreach (var child in shapeCollection)
+                case ShapeCollection shapeCollection:
                 {
-                    shapeFound = FindShape(child, transform, position);
-                    if (null != shapeFound)
+                    var transform = CreateTransformGroup(parentTransform, shapeCollection);
+                    foreach (var child in shapeCollection)
                     {
-                        if (null == shapeFound.ParentTag && null != shapeCollection.ParentTag)
-                            shapeFound = shapeCollection;
-                        return shapeFound;
-                    }
-                }
-            }
-            else if (shape is TextShape)
-            {
-                var text = shape as TextShape;
-                var transform = new TransformGroup();
-                transform.Children.Add(parentTransform);
-                AddShapeToTransform(text, transform);
-                var rect = transform.TransformBounds(new Rect(new Size(text.MeasuredWidth, text.MeasuredHeight)));
-                if (rect.Contains(position)) shapeFound = text;
-            }
-            else if (shape is ImageShape)
-            {
-                var image = shape as ImageShape;
-                var transform = new TransformGroup();
-                transform.Children.Add(parentTransform);
-                AddShapeToTransform(image, transform);
-                var rect = transform.TransformBounds(new Rect(new Size(image.Width, image.Height)));
-                if (rect.Contains(position)) shapeFound = image;
-            }
-            else if (shape is FreeHandShape)
-            {
-                var freehand = shape as FreeHandShape;
-                var transform = new TransformGroup();
-                transform.Children.Add(parentTransform);
-                AddShapeToTransform(freehand, transform);
-                foreach (var freehandPath in freehand.Paths)
-                {
-                    var geometry = new PathGeometry();
-                    var figure = new PathFigure {IsClosed = freehandPath.Closed};
-                    foreach (var segment in freehandPath.Segments)
-                    {
-                        if (segment is FreeHandStartSegment)
+                        shapeFound = FindShape(child, transform, position);
+                        if (null != shapeFound)
                         {
-                            var start = segment as FreeHandStartSegment;
-                            figure.StartPoint = new Point(start.X, start.Y);
-                        }
-                        else if (segment is FreeHandLineSegment)
-                        {
-                            var line = segment as FreeHandLineSegment;
-                            figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
-                        }
-                        else if (segment is FreeHandBezierSegment)
-                        {
-                            var bezier = segment as FreeHandBezierSegment;
-                            figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
-                                new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
+                            if (null == shapeFound.ParentTag && null != shapeCollection.ParentTag)
+                                shapeFound = shapeCollection;
+                            return shapeFound;
                         }
                     }
 
-                    geometry.Figures.Add(figure);
-                    var bounds = transform.TransformBounds(geometry.Bounds);
-                    if (bounds.Contains(position))
+                    break;
+                }
+                case TextShape text:
+                {
+                    var transform = CreateTransformGroup(parentTransform, text);
+                        var rect = transform.TransformBounds(new Rect(new Size(text.MeasuredWidth, text.MeasuredHeight)));
+                    if (rect.Contains(position)) shapeFound = text;
+                    break;
+                }
+                case ImageShape image:
+                {
+                    var transform = CreateTransformGroup(parentTransform, image);
+                        var rect = transform.TransformBounds(new Rect(new Size(image.Width, image.Height)));
+                    if (rect.Contains(position)) shapeFound = image;
+                    break;
+                }
+                case FreeHandShape freehand:
+                {
+                    var transform = CreateTransformGroup(parentTransform, freehand);
+                    foreach (var freehandPath in freehand.Paths)
                     {
-                        shapeFound = freehand;
-                        break;
+                        var geometry = new PathGeometry();
+                        var figure = new PathFigure {IsClosed = freehandPath.Closed};
+                        foreach (var segment in freehandPath.Segments)
+                        {
+                            if (segment is FreeHandStartSegment)
+                            {
+                                var start = segment as FreeHandStartSegment;
+                                figure.StartPoint = new Point(start.X, start.Y);
+                            }
+                            else if (segment is FreeHandLineSegment)
+                            {
+                                var line = segment as FreeHandLineSegment;
+                                figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
+                            }
+                            else if (segment is FreeHandBezierSegment)
+                            {
+                                var bezier = segment as FreeHandBezierSegment;
+                                figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
+                                    new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
+                            }
+                        }
+
+                        geometry.Figures.Add(figure);
+                        var bounds = transform.TransformBounds(geometry.Bounds);
+                        if (bounds.Contains(position))
+                        {
+                            shapeFound = freehand;
+                            break;
+                        }
                     }
+
+                    break;
                 }
             }
 
             return shapeFound;
+        }
+
+        private TransformGroup CreateTransformGroup(TransformGroup parentTransform, ContentShape contentShape)
+        {
+            var transform = new TransformGroup();
+            transform.Children.Add(parentTransform);
+            AddShapeToTransform(contentShape, transform);
+            return transform;
         }
 
         public int GetNextShapeCollectionID()
@@ -177,7 +182,7 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public void Initialize(Page page)
         {
-            Reset();
+            _shapeCollections.Clear();
             var shapes = page.CreateShapes();
             var root = new ShapeCollection {shapes};
             AddItem(root, null);
@@ -187,13 +192,7 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public static void Remove(Shape shape)
         {
-            var sc = shape.Parent;
-            sc?.Remove(shape);
-        }
-
-        public void Reset()
-        {
-            _shapeCollections.Clear();
+            shape.Parent?.Remove(shape);
         }
 
         public void Select(ContentShape shape)
@@ -248,13 +247,10 @@ namespace TallComponents.Samples.ShapesBrowser
             }
 
             Add(shape as ShapeCollection);
-            if (shape is ContentShape)
+            var contentShape = shape as ContentShape;
+            if (contentShape?.ParentTag != null)
             {
-                var contentShape = shape as ContentShape;
-                if (null != contentShape.ParentTag)
-                {
-                    _tagsTreeViewModel.SetShape(contentShape);
-                }
+                _tagsTreeViewModel.SetShape(contentShape);
             }
 
             if (shape is ShapeCollection)
@@ -288,81 +284,82 @@ namespace TallComponents.Samples.ShapesBrowser
         private void MarkChildShapes(Shape shape, TransformGroup parentTransform)
         {
             if (null == shape || null == parentTransform) return;
-            if (shape is ShapeCollection)
+            switch (shape)
             {
-                var shapeCollection = shape as ShapeCollection;
-                var transform = new TransformGroup();
-                transform.Children.Add(parentTransform);
-                AddShapeToTransform(shapeCollection, transform);
-                foreach (var child in shapeCollection) MarkChildShapes(child, transform);
-            }
-            else if (shape is TextShape text)
-            {
-                var transform = new TransformGroup();
-                transform.Children.Add(parentTransform);
-                AddShapeToTransform(text, transform);
-                var rectangle = new Rectangle
+                case ShapeCollection shapeCollection:
                 {
-                    RenderTransform = transform,
-                    Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
-                    Width = text.MeasuredWidth,
-                    Height = text.MeasuredHeight
-                };
-                _overlay.Children.Add(rectangle);
-            }
-            else if (shape is ImageShape image)
-            {
-                var transform = new TransformGroup();
-                transform.Children.Add(parentTransform);
-                AddShapeToTransform(image, transform);
-                var rectangle = new Rectangle
+                    var transform = CreateTransformGroup(parentTransform, shapeCollection);
+                        foreach (var child in shapeCollection) MarkChildShapes(child, transform);
+                    break;
+                }
+                case TextShape text:
                 {
-                    RenderTransform = transform,
-                    Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
-                    Width = image.Width,
-                    Height = image.Height
-                };
-                _overlay.Children.Add(rectangle);
-            }
-            else if (shape is FreeHandShape freehand)
-            {
-                var transform = new TransformGroup();
-                transform.Children.Add(parentTransform);
-                AddShapeToTransform(freehand, transform);
-                var path = new Path();
-                var geometry = new PathGeometry();
-                path.Data = geometry;
-                foreach (var freehandPath in freehand.Paths)
-                {
-                    var figure = new PathFigure {IsClosed = freehandPath.Closed};
-                    foreach (var segment in freehandPath.Segments)
+                    var transform = CreateTransformGroup(parentTransform, text);
+                        var rectangle = new Rectangle
                     {
-                        if (segment is FreeHandStartSegment)
+                        RenderTransform = transform,
+                        Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
+                        Width = text.MeasuredWidth,
+                        Height = text.MeasuredHeight
+                    };
+                    _overlay.Children.Add(rectangle);
+                    break;
+                }
+                case ImageShape image:
+                {
+                    var transform = CreateTransformGroup(parentTransform, image);
+                        var rectangle = new Rectangle
+                    {
+                        RenderTransform = transform,
+                        Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
+                        Width = image.Width,
+                        Height = image.Height
+                    };
+                    _overlay.Children.Add(rectangle);
+                    break;
+                }
+                case FreeHandShape freehand:
+                {
+                    var transform = CreateTransformGroup(parentTransform, freehand);
+                        var path = new Path();
+                    var geometry = new PathGeometry();
+                    path.Data = geometry;
+                    foreach (var freehandPath in freehand.Paths)
+                    {
+                        var figure = new PathFigure {IsClosed = freehandPath.Closed};
+                        foreach (var segment in freehandPath.Segments)
                         {
-                            var start = segment as FreeHandStartSegment;
-                            figure.StartPoint = new Point(start.X, start.Y);
+                            switch (segment)
+                            {
+                                case FreeHandStartSegment start:
+                                {
+                                    figure.StartPoint = new Point(start.X, start.Y);
+                                    break;
+                                }
+                                case FreeHandLineSegment line:
+                                {
+                                    figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
+                                    break;
+                                }
+                                case FreeHandBezierSegment bezier:
+                                {
+                                    figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
+                                        new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
+                                    break;
+                                }
+                            }
                         }
-                        else if (segment is FreeHandLineSegment)
-                        {
-                            var line = segment as FreeHandLineSegment;
-                            figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
-                        }
-                        else if (segment is FreeHandBezierSegment)
-                        {
-                            var bezier = segment as FreeHandBezierSegment;
-                            figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
-                                new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
-                        }
+
+                        geometry.Figures.Add(figure);
                     }
 
-                    geometry.Figures.Add(figure);
+                    path.Fill = new SolidColorBrush(Colors.Red);
+                    path.Stroke = new SolidColorBrush(Colors.Green);
+                    path.StrokeThickness = 1;
+                    path.RenderTransform = transform;
+                    _overlay.Children.Add(path);
+                    break;
                 }
-
-                path.Fill = new SolidColorBrush(Colors.Red);
-                path.Stroke = new SolidColorBrush(Colors.Green);
-                path.StrokeThickness = 1;
-                path.RenderTransform = transform;
-                _overlay.Children.Add(path);
             }
         }
     }

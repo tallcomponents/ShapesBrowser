@@ -7,10 +7,11 @@ using TallComponents.Samples.ShapesBrowser.MenuViewModel;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
-    internal class RecentFilesMenuListViewModel
+    internal class RecentFilesMenuListViewModel: BaseViewModel
     {
         private readonly List<string> _filePaths;
         private readonly int _numFilePaths;
+        private ObservableCollection<MenuItemViewModel> _menuItems;
 
         public RecentFilesMenuListViewModel(int numFiles)
         {
@@ -33,7 +34,11 @@ namespace TallComponents.Samples.ShapesBrowser
         public delegate void FileSelectedEventHandler(string filePath);
 
         public event FileSelectedEventHandler OnFilePathSelected;
-        public ObservableCollection<MenuItemViewModel> MenuItems { get; set; }
+        public ObservableCollection<MenuItemViewModel> MenuItems
+        {
+            get => _menuItems;
+            private set => SetProperty(ref _menuItems, value);
+        }
 
         public void AddFilePath(string filePath)
         {

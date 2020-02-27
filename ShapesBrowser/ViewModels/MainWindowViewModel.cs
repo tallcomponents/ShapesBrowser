@@ -10,6 +10,7 @@ using TallComponents.PDF.Diagnostics;
 using TallComponents.PDF.Rasterizer;
 using TallComponents.PDF.Shapes;
 using TallComponents.Samples.ShapesBrowser.MenuViewModel;
+using TallComponents.Samples.ShapesBrowser.Other;
 using Canvas = System.Windows.Controls.Canvas;
 using pdf = TallComponents.PDF;
 
@@ -24,18 +25,19 @@ namespace TallComponents.Samples.ShapesBrowser
         private pdf.Document _currentDocument;
         private readonly Loader _loader = new Loader();
         private Canvas _overlay;
-        private readonly RecentFilesMenuListViewModel _recentFilesMenuListViewModel;
+        private readonly IDialogBoxService _dialogBoxService;
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IDialogBoxService dialogBoxService)
         {
+            _dialogBoxService = dialogBoxService;
             SaveCommand = new RelayCommand(Save);
             OpenCommand = new RelayCommand(Open);
             DocumentClickCommand = new RelayCommand(OnMouseClick);
             DeleteShapeCommand = new RelayCommand<KeyEventArgs>(OnDelete);
             TagsTreeViewModel = new TagsTreeViewModel();
             ShapesTreeViewModel = new ShapesTreeViewModel();
-            _recentFilesMenuListViewModel = new RecentFilesMenuListViewModel(4);
-            _recentFilesMenuListViewModel.OnFilePathSelected += OnFilePathSelected;
+            RecentFilesMenuListViewModel = new RecentFilesMenuListViewModel(4);
+            RecentFilesMenuListViewModel.OnFilePathSelected += OnFilePathSelected;
             TagsTreeViewModel.SetShapesTree(ShapesTreeViewModel);
             ShapesTreeViewModel.SetTagsTree(TagsTreeViewModel);
         }
@@ -57,8 +59,6 @@ namespace TallComponents.Samples.ShapesBrowser
             set => SetProperty(ref _itemSource, value);
         }
 
-        public ObservableCollection<MenuItemViewModel> MenuItems => _recentFilesMenuListViewModel.MenuItems;
-
         public int SelectedIndex
         {
             get => _selectedIndex;
@@ -77,6 +77,21 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public ShapesTreeViewModel ShapesTreeViewModel { get; }
         public TagsTreeViewModel TagsTreeViewModel { get; }
+        public RecentFilesMenuListViewModel RecentFilesMenuListViewModel { get; }
+
+        private void OnFilePathSelected(string arg)
+        {
+            try
+            {
+                _loader.Open(arg);
+                AfterOpen(arg);
+            }
+            catch (Exception ex)
+            {
+                RecentFilesMenuListViewModel.RemoveFile(arg);
+                _dialogBoxService.ShowMessage(ex.Message);
+            }
+        }
 
         private static pdf.Page Copy(pdf.Page page, ShapeCollection shapeCollection = null)
         {
@@ -84,17 +99,6 @@ namespace TallComponents.Samples.ShapesBrowser
             var shapes = shapeCollection ?? page.CreateShapes();
             newPage.Overlay.Add(shapes);
             return newPage;
-        }
-
-        private void AfterOpen(string filePath)
-        {
-            _currentDocument = _loader.GetCurrentDocument();
-            _recentFilesMenuListViewModel.AddFilePath(filePath);
-            TagsTreeViewModel.Initialize(_currentDocument);
-            OnPropertyChanged(nameof(TagsTreeViewModel));
-            InitializePagesList();
-            SelectedIndex = 0;
-            DrawPage(0);
         }
 
         private void DrawPage(int index)
@@ -142,10 +146,8 @@ namespace TallComponents.Samples.ShapesBrowser
 
         private void InitializePagesList()
         {
-            if (null != _currentDocument)
-            {
-                ItemsSource = _currentDocument.Pages;
-            }
+            if (null == _currentDocument) return;
+            ItemsSource = _currentDocument.Pages;
         }
 
         private void OnDelete(KeyEventArgs e)
@@ -172,53 +174,48 @@ namespace TallComponents.Samples.ShapesBrowser
             DrawPage(prevIndex);
         }
 
-        private void OnFilePathSelected(string arg)
-        {
-            try
-            {
-                _loader.Open(arg);
-                AfterOpen(arg);
-            }
-            catch (Exception ex)
-            {
-                _recentFilesMenuListViewModel.RemoveFile(arg);
-                MessageBox.Show(ex.Message);
-            }
-        }
-
         private void OnMouseClick()
         {
             var pos = Mouse.GetPosition(_overlay);
             Shape shape = ShapesTreeViewModel.FindShape(null, null, pos);
-            if (null != shape) ShapesTreeViewModel.Select(shape as ContentShape);
+            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape);
         }
 
         private void Open()
         {
-            var dialog = new OpenFileDialog {Filter = "PDF files (*.pdf)|*.pdf"};
-            if (dialog.ShowDialog() == true)
-            {
-                _loader.Open(dialog.FileName);
-                AfterOpen(dialog.FileName);
-            }
+            _dialogBoxService.Filter = "PDF files (*.pdf)|*.pdf";
+            var fileName = _dialogBoxService.OpenFileDialog(string.Empty);
+            if (string.IsNullOrEmpty(fileName)) return;
+
+            _loader.Open(fileName);
+            AfterOpen(fileName);
+        }
+
+        private void AfterOpen(string filePath)
+        {
+            _currentDocument = _loader.GetCurrentDocument();
+            RecentFilesMenuListViewModel.AddFilePath(filePath);
+            TagsTreeViewModel.Initialize(_currentDocument);
+            OnPropertyChanged(nameof(TagsTreeViewModel));
+            InitializePagesList();
+            SelectedIndex = 0;
+            DrawPage(0);
         }
 
         private void Save()
         {
-            var dialog = new SaveFileDialog {Filter = "PDF files (*.pdf)|*.pdf"};
-            if (dialog.ShowDialog() == true)
-            {
-                _loader.Save(dialog.FileName);
-            }
+            _dialogBoxService.Filter = "PDF files (*.pdf)|*.pdf";
+            var fileName = _dialogBoxService.SaveFileDialog(string.Empty);
+            if (string.IsNullOrEmpty(fileName)) return;
+
+            _loader.Save(fileName);
         }
 
         private void SelectionChanged()
         {
-            if (SelectedItem is pdf.Page page)
-            {
-                ShapesTreeViewModel.Initialize(page);
-                DrawPage(page.Index);
-            }
+            if (!(SelectedItem is pdf.Page page)) return;
+            ShapesTreeViewModel.Initialize(page);
+            DrawPage(page.Index);
         }
     }
 }

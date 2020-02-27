@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using TallComponents.Samples.ShapesBrowser.Other;
+using TallComponents.Samples.ShapesBrowser.Views;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
@@ -6,8 +8,9 @@ namespace TallComponents.Samples.ShapesBrowser
     {
         public MainWindowView()
         {
+            IDialogBoxService dialogBoxService = new DialogBoxService();
             InitializeComponent();
-            DataContext = new MainWindowViewModel();
+            DataContext = new MainWindowViewModel(dialogBoxService);
         }
     }
 }

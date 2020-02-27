@@ -9,26 +9,30 @@
         <KeyBinding Key="Delete" Command="{Binding DeleteShapeCommand}" />
     </Window.InputBindings>
     <Window.Resources>
-        <CollectionViewSource x:Key="MenuItems" Source="{Binding MenuItems}" />
-        <Style TargetType="{x:Type MenuItem}">
-            <Setter Property="Header" Value="{Binding Path=Text}" />
-            <Setter Property="Command" Value="{Binding Path=Command}" />
-            <Setter Property="Visibility" Value="{Binding Path=Visibility}" />
-            <Setter Property="Tag" Value="{Binding Path=Visibility}" />
-            <Setter Property="Command" Value="{Binding Path=OpenCommand}" />
-            <Setter Property="CommandParameter" Value="{Binding Path=CommandParameter}" />
-        </Style>
-        <HierarchicalDataTemplate
-        DataType="{x:Type ViewModel:MenuItemViewModel}"
-        ItemsSource="{Binding Path=MenuItems}">
-        </HierarchicalDataTemplate>
+
     </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Name ="fileMenuItem" Header="_File">
+            <MenuItem Header="_File">
+                <MenuItem.Resources>
+                    <CollectionViewSource x:Key="MenuItems" Source="{Binding RecentFilesMenuListViewModel.MenuItems}" />
+                    <Style TargetType="{x:Type MenuItem}">
+                        <Setter Property="Header" Value="{Binding Path=Text}" />
+                        <Setter Property="Command" Value="{Binding Path=Command}" />
+                        <Setter Property="Visibility" Value="{Binding Path=Visibility}" />
+                        <Setter Property="Tag" Value="{Binding Path=Visibility}" />
+                        <Setter Property="Command" Value="{Binding Path=OpenCommand}" />
+                        <Setter Property="CommandParameter" Value="{Binding Path=CommandParameter}" />
+                    </Style>
+                    <HierarchicalDataTemplate 
+                        DataType="{x:Type ViewModel:MenuItemViewModel}"
+                        ItemsSource="{Binding Path=MenuItems}">
+                    </HierarchicalDataTemplate>
+                </MenuItem.Resources>
+
                 <MenuItem.ItemsSource>
                     <CompositeCollection>
-                        <MenuItem Header="_Open" Command="{Binding OpenCommand}" />
+                        <MenuItem Header="_Open"  Command="{Binding OpenCommand}" />
                         <MenuItem Header="_Close" />
                         <MenuItem Header="_Save As" Command="{Binding SaveCommand}" />
                         <Separator />
