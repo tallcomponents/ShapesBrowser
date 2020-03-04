@@ -4,6 +4,8 @@
         xmlns:shapes="clr-namespace:TallComponents.PDF.Shapes;assembly=TallComponents.PDF.Controls.WPF"
         xmlns:src="clr-namespace:TallComponents.Samples.ShapesBrowser"
         xmlns:ViewModel="clr-namespace:TallComponents.Samples.ShapesBrowser.MenuViewModel"
+        xmlns:views="clr-namespace:TallComponents.Samples.ShapesBrowser.Views"
+        xmlns:wpf="clr-namespace:TallComponents.PDF.Controls.WPF;assembly=TallComponents.PDF.Controls.WPF"
         Title="Shapes browser" Height="722" Width="1375">
     <Window.InputBindings>
         <KeyBinding Key="Delete" Command="{Binding DeleteShapeCommand}" />
@@ -129,6 +131,7 @@
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
                     </TreeView>
+
                 </DockPanel>
             </Grid>
 
@@ -138,8 +141,37 @@
                 ShowsPreview="True"
                 Width="3">
             </GridSplitter>
-            <DocumentViewer FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}" Grid.Column="4" Name="documentViewer" Cursor="Arrow" ForceCursor="True" Document="{Binding FixedDocument}">
-            </DocumentViewer>
+
+            <src:DocumentViewerEx Grid.Column="4" Document="{Binding FixedDocument}" AttachToPage="{Binding ElementName=test}">
+            </src:DocumentViewerEx >
+
+            <ItemsControl Width="100" Height="100" Name="test" Grid.Column="4" ItemsSource="{Binding Items}" >
+                <ItemsControl.Resources>
+                    <DataTemplate DataType="{x:Type src:RectangleViewModel}">
+                        <Rectangle Stroke="Green" Fill="Red" Width="{Binding Width,Mode=TwoWay}" Height="{Binding Height,Mode=TwoWay}"/>
+                    </DataTemplate>
+                </ItemsControl.Resources>
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas x:Name="TestCanvas" Width="Auto" Height="Auto" Background="Aquamarine" ZIndex="50
+                    " Opacity="0.5">
+                        </Canvas>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Canvas.Top" Value="{Binding Top}"/>
+                        <Setter Property="Canvas.Left" Value="{Binding Left}"/>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+
+            </ItemsControl>
+
+
+            <!--<DocumentViewer Grid.Column="4" Name="documentViewer" Cursor="Arrow" ForceCursor="True" Document="{Binding FixedDocument}"/>-->
         </Grid>
     </DockPanel>
-</Window>
+</Window>   
+        

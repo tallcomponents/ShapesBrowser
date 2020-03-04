@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -19,6 +20,7 @@ namespace TallComponents.Samples.ShapesBrowser
     internal class MainWindowViewModel : BaseViewModel
     {
         private FixedDocument _fixedDocument;
+        private FixedPage _fixedPage;
         private pdf.PageCollection _itemSource;
         private int _selectedIndex;
         private pdf.Page _selectedItem;
@@ -26,6 +28,7 @@ namespace TallComponents.Samples.ShapesBrowser
         private readonly Loader _loader = new Loader();
         private Canvas _overlay;
         private readonly IDialogBoxService _dialogBoxService;
+        private ObservableCollection<RectangleViewModel> _items;
 
         public MainWindowViewModel(IDialogBoxService dialogBoxService)
         {
@@ -40,6 +43,12 @@ namespace TallComponents.Samples.ShapesBrowser
             RecentFilesMenuListViewModel.OnFilePathSelected += OnFilePathSelected;
             TagsTreeViewModel.SetShapesTree(ShapesTreeViewModel);
             ShapesTreeViewModel.SetTagsTree(TagsTreeViewModel);
+            Items = new ObservableCollection<RectangleViewModel>
+            {
+                new RectangleViewModel {Top=150.0, Left=100.0, Height=20, Width=20 },
+                new RectangleViewModel {Top=220.0, Left=80.0, Height=40, Width=40 },
+                new RectangleViewModel {Top=100.0, Left= 100.0, Height=50, Width=100}
+            };
         }
 
         public ICommand DeleteShapeCommand { get; set; }
@@ -73,6 +82,12 @@ namespace TallComponents.Samples.ShapesBrowser
                 SetProperty(ref _selectedItem, value);
                 SelectionChanged();
             }
+        }
+
+        public ObservableCollection<RectangleViewModel> Items
+        {
+            get => _items;
+            set => SetProperty(ref _items, value);
         }
 
         public ShapesTreeViewModel ShapesTreeViewModel { get; }
@@ -113,12 +128,14 @@ namespace TallComponents.Samples.ShapesBrowser
 
             var mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick};
             fixedPage.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture));
-
+            
             _overlay = new Canvas();
             _overlay.InputBindings.Add(new InputBinding(DeleteShapeCommand, new KeyGesture(Key.Delete)));
             ShapesTreeViewModel.SetCanvas(_overlay);
             _overlay.Width = fixedPage.Width;
             _overlay.Height = fixedPage.Height;
+            _overlay.Background = Brushes.Transparent;
+
 
             var group = new TransformGroup();
             group.Children.Insert(0, new TranslateTransform(0, fixedPage.Height));
