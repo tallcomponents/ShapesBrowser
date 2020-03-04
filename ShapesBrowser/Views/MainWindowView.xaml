@@ -4,6 +4,8 @@
         xmlns:shapes="clr-namespace:TallComponents.PDF.Shapes;assembly=TallComponents.PDF.Controls.WPF"
         xmlns:src="clr-namespace:TallComponents.Samples.ShapesBrowser"
         xmlns:ViewModel="clr-namespace:TallComponents.Samples.ShapesBrowser.MenuViewModel"
+        xmlns:views="clr-namespace:TallComponents.Samples.ShapesBrowser.Views"
+        xmlns:wpf="clr-namespace:TallComponents.PDF.Controls.WPF;assembly=TallComponents.PDF.Controls.WPF"
         Title="Shapes browser" Height="722" Width="1375">
     <Window.InputBindings>
         <KeyBinding Key="Delete" Command="{Binding DeleteShapeCommand}" />
@@ -109,26 +111,26 @@
                         </HierarchicalDataTemplate>
                     </DockPanel.Resources>
 
-                    <TreeView DataContext="{Binding ShapesTreeViewModel}" ItemsSource="{Binding ViewItems}">
+                    <views:MultipleSelectionTreeView  DataContext="{Binding ShapesTreeViewModel}" ItemsSource="{Binding ViewItems}" SelectedItems="{Binding SelectedItems}">
+
                         <TreeView.ItemContainerStyle>
                             <Style TargetType="{x:Type TreeViewItem}">
                                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                                <Setter Property="FontWeight" Value="Normal" />
+                                <Setter Property="views:MultipleSelectionTreeView.IsItemSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                                 <Style.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="FontWeight" Value="Bold" />
+                                    <Trigger Property="views:MultipleSelectionTreeView.IsItemSelected" Value="True">
+                                        <Setter Property="Background" Value="SkyBlue" />
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </TreeView.ItemContainerStyle>
-
                         <TreeView.ItemTemplate>
                             <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                                 <TextBlock Text="{Binding Text}" />
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
-                    </TreeView>
+
+                    </views:MultipleSelectionTreeView>
                 </DockPanel>
             </Grid>
 
@@ -142,4 +144,5 @@
             </DocumentViewer>
         </Grid>
     </DockPanel>
-</Window>
+</Window>   
+        

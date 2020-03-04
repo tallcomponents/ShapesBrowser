@@ -45,11 +45,7 @@ namespace TallComponents.Samples.ShapesBrowser
         public bool IsSelected
         {
             get => _isSelected;
-            set
-            {
-                SetProperty(ref _isSelected, value);
-                _shapesTreeViewModel.SelectedItemChanged(this);
-            }
+            set => SetProperty(ref _isSelected, value);
         }
 
         public ShapeCollectionViewModel Parent { get; }

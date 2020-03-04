@@ -47,7 +47,7 @@ namespace TallComponents.Samples.ShapesBrowser
             if (_suppressChangeEvent) return;
             if (tagVM.IsSelected)
             {
-                _shapesTreeViewModel.Select(tagVM.Shape as ContentShape);
+                _shapesTreeViewModel.Select(tagVM.Shape as ContentShape, false);
             }
         }
 

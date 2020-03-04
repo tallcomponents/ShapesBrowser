@@ -88,6 +88,7 @@
     <Compile Include="ViewModels\TagsTreeViewModel.cs" />
     <Compile Include="ViewModels\RecentFilesMenuListViewModel.cs" />
     <Compile Include="Other\Loader.cs" />
+    <Compile Include="Other\MultipleSelectionTreeView.cs" />
     <Page Include="Views\MainWindowView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -140,5 +141,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

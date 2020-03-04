@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -17,9 +20,19 @@ namespace TallComponents.Samples.ShapesBrowser
         private ShapeCollectionViewModel _rootShapeCollection;
         private Canvas _overlay;
         private ShapeCollectionViewModel _selectedItem;
+        private HashSet<ShapeCollectionViewModel> _selectedItems;
         private readonly List<ShapeCollection> _shapeCollections = new List<ShapeCollection>();
         private TagsTreeViewModel _tagsTreeViewModel;
         private ObservableCollection<ShapeCollectionViewModel> _viewItems;
+        private bool _modified;
+        private ObservableCollection<ShapeCollectionViewModel> _selectedItemsViewModel;
+
+        public ShapesTreeViewModel()
+        {
+            _selectedItems = new HashSet<ShapeCollectionViewModel>();
+            SelectedItems  = new ObservableCollection<ShapeCollectionViewModel>();
+            SelectedItems.CollectionChanged += OnSelectedItemsCollectionChanged;
+        }
 
         public ObservableCollection<ShapeCollectionViewModel> ViewItems
         {
@@ -36,6 +49,11 @@ namespace TallComponents.Samples.ShapesBrowser
             }
 
             return sc;
+        }
+
+        public ShapeCollection GetRoot()
+        {
+            return _rootShapeCollection.Shape as ShapeCollection;
         }
 
         public static int GetID(Shape shape)
@@ -72,10 +90,17 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public void Deselect()
         {
-            if (_selectedItem == null) return;
-            _selectedItem.IsSelected = false;
+            foreach (var selectedItem in _selectedItems)
+            {
+                selectedItem.IsSelected = false;
+            }
         }
 
+        public ObservableCollection<ShapeCollectionViewModel> SelectedItems
+        {
+            get => _selectedItemsViewModel;
+            set => SetProperty(ref _selectedItemsViewModel, value);
+        }
         public ContentShape FindShape(Shape shape, TransformGroup parentTransform, Point position)
         {
             ContentShape shapeFound = null;
@@ -175,10 +200,6 @@ namespace TallComponents.Samples.ShapesBrowser
             return _shapeCollections.Count;
         }
 
-        public Shape GetSelectedShape()
-        {
-            return _selectedItem.Shape;
-        }
 
         public void Initialize(Page page)
         {
@@ -190,28 +211,50 @@ namespace TallComponents.Samples.ShapesBrowser
             ViewItems = new ObservableCollection<ShapeCollectionViewModel>(new[] {_rootShapeCollection});
         }
 
-        public static void Remove(Shape shape)
+        public void RemoveSelectedItems()
         {
-            shape.Parent?.Remove(shape);
+            foreach (var shape in _selectedItems)
+            {
+                shape.Shape.Parent?.Remove(shape.Shape);
+            }
+            _selectedItems.Clear();
         }
 
-        public void Select(ContentShape shape)
+        public void Select(ContentShape shape, bool modified)
         {
+            this._modified = modified;
+
+            // WIP - deselect everything if control is not being held
+           /* if (!_modified)
+            {
+                foreach (var shapeCollectionViewModel in SelectedItems)
+                {
+                    shapeCollectionViewModel.IsSelected = false;
+                }
+            }*/
+
             _rootShapeCollection.Select(shape);
         }
 
-        public void SelectedItemChanged(ShapeCollectionViewModel shapeVM)
+        private void OnSelectedItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            if (shapeVM.IsSelected == false) return;
-            _selectedItem = shapeVM;
             _overlay.Children.Clear();
+            var collection =  sender as ObservableCollection<ShapeCollectionViewModel>;
 
-            if (!(shapeVM.Shape is Shape selectedItem)) return;
-            if (selectedItem is ContentShape contentShape)
+            foreach (var shapeVM in collection)
             {
-                var transform = GetTransform(contentShape);
-                MarkChildShapes(contentShape, transform);
-                _tagsTreeViewModel.Select(contentShape);
+                if(shapeVM == null)
+                    continue;
+
+                if (shapeVM.IsSelected == false) continue;
+
+                if (!(shapeVM.Shape is Shape selectedItem)) continue;
+                if (selectedItem is ContentShape contentShape)
+                {
+                    var transform = GetTransform(contentShape);
+                    MarkChildShapes(contentShape, transform);
+                    _tagsTreeViewModel.Select(contentShape);
+                }
             }
         }
 
@@ -300,7 +343,7 @@ namespace TallComponents.Samples.ShapesBrowser
                         RenderTransform = transform,
                         Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
                         Width = text.MeasuredWidth,
-                        Height = text.MeasuredHeight
+                        Height = text.MeasuredHeight,
                     };
                     _overlay.Children.Add(rectangle);
                     break;

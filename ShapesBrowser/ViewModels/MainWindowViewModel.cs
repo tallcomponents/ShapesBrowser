@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.Win32;
 using TallComponents.PDF.Configuration;
 using TallComponents.PDF.Diagnostics;
 using TallComponents.PDF.Rasterizer;
 using TallComponents.PDF.Shapes;
-using TallComponents.Samples.ShapesBrowser.MenuViewModel;
 using TallComponents.Samples.ShapesBrowser.Other;
 using Canvas = System.Windows.Controls.Canvas;
 using pdf = TallComponents.PDF;
@@ -33,6 +29,7 @@ namespace TallComponents.Samples.ShapesBrowser
             SaveCommand = new RelayCommand(Save);
             OpenCommand = new RelayCommand(Open);
             DocumentClickCommand = new RelayCommand(OnMouseClick);
+            DocumentModifiedClickCommand = new RelayCommand(OnModifiedMouseClick);
             DeleteShapeCommand = new RelayCommand<KeyEventArgs>(OnDelete);
             TagsTreeViewModel = new TagsTreeViewModel();
             ShapesTreeViewModel = new ShapesTreeViewModel();
@@ -44,6 +41,7 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public ICommand DeleteShapeCommand { get; set; }
         public ICommand DocumentClickCommand { get; set; }
+        public ICommand DocumentModifiedClickCommand { get; set; }
         public ICommand OpenCommand { get; set; }
         public ICommand SaveCommand { get; set; }
 
@@ -111,14 +109,17 @@ namespace TallComponents.Samples.ShapesBrowser
             FixedDocument = fixedDocument;
             var fixedPage = fixedDocument.Pages[0].Child;
 
-            var mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick};
-            fixedPage.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture));
-
             _overlay = new Canvas();
             _overlay.InputBindings.Add(new InputBinding(DeleteShapeCommand, new KeyGesture(Key.Delete)));
+            var mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick};
+            _overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture));
+            mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick, Modifiers = ModifierKeys.Control};
+            _overlay.InputBindings.Add(new InputBinding(DocumentModifiedClickCommand, mouseGesture));
             ShapesTreeViewModel.SetCanvas(_overlay);
             _overlay.Width = fixedPage.Width;
             _overlay.Height = fixedPage.Height;
+            _overlay.Background = Brushes.Transparent;
+
 
             var group = new TransformGroup();
             group.Children.Insert(0, new TranslateTransform(0, fixedPage.Height));
@@ -152,10 +153,8 @@ namespace TallComponents.Samples.ShapesBrowser
 
         private void OnDelete(KeyEventArgs e)
         {
-            var shape = ShapesTreeViewModel.GetSelectedShape();
-            if (null == shape) return;
-            var root = ShapesTreeViewModel.FindRoot(shape.Parent);
-            ShapesTreeViewModel.Remove(shape);
+            ShapesTreeViewModel.RemoveSelectedItems();
+            var root = ShapesTreeViewModel.GetRoot();
             var pdfOut = new pdf.Document();
             var selectedPage = SelectedItem;
             foreach (var page in _currentDocument.Pages)
@@ -174,11 +173,21 @@ namespace TallComponents.Samples.ShapesBrowser
             DrawPage(prevIndex);
         }
 
+        private void OnModifiedMouseClick()
+        {
+            MouseClick(true);
+        }
+
         private void OnMouseClick()
+        {
+            MouseClick(false);
+        }
+
+        private void MouseClick(bool modified)
         {
             var pos = Mouse.GetPosition(_overlay);
             Shape shape = ShapesTreeViewModel.FindShape(null, null, pos);
-            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape);
+            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape, modified);
         }
 
         private void Open()
