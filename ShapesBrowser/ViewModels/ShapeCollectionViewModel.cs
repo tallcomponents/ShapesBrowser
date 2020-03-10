@@ -1,13 +1,17 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using TallComponents.PDF.Shapes;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
-    public class ShapeCollectionViewModel : BaseViewModel
+    internal class ShapeCollectionViewModel : BaseViewModel
     {
         private bool _isExpanded;
         private bool _isSelected;
+        private bool _isMarked;
+
         private readonly ShapesTreeViewModel _shapesTreeViewModel;
 
         public ShapeCollectionViewModel(Shape person, ShapesTreeViewModel shapesTreeViewModel) : this(person, null, shapesTreeViewModel)
@@ -42,6 +46,23 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
+        public bool IsMarked
+        {
+            get => _isMarked;
+            set
+            {
+                _isMarked = value;
+                if (value == false)
+                {
+                    if (Children == null) return;
+                    foreach (var child in Children)
+                    {
+                        child.IsMarked = false;
+                    }
+                }
+            }
+        }
+
         public bool IsSelected
         {
             get => _isSelected;
@@ -66,20 +87,44 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
-        public void Select(Shape shape)
+        public List<ShapeCollectionViewModel> ToList()
+        {
+            List<ShapeCollectionViewModel> allItems = new List<ShapeCollectionViewModel> {this};
+            if (Children == null)
+            {
+                return allItems;
+            }
+
+            foreach (var child in Children)
+            {
+                var list = child.ToList();
+                allItems.AddRange(list);
+            }
+
+            return allItems;
+        }
+
+        public ShapeCollectionViewModel Select(Shape shape)
         {
             if (Shape == shape)
             {
                 IsSelected = true;
                 IsExpanded = true;
+                return this;
             }
             else
             {
-                if (null == Children) return;
+                if (null == Children) return null;
+                ShapeCollectionViewModel selectedViewModel = null;
                 foreach (var child in Children)
                 {
-                    child.Select(shape);
+                    if (child.Select(shape) != null)
+                    {
+                        selectedViewModel = child.Select(shape);
+                    }
                 }
+
+                return selectedViewModel;
             }
         }
     }

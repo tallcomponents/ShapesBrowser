@@ -28,9 +28,8 @@ namespace TallComponents.Samples.ShapesBrowser
             _dialogBoxService = dialogBoxService;
             SaveCommand = new RelayCommand(Save);
             OpenCommand = new RelayCommand(Open);
-            DocumentClickCommand = new RelayCommand(OnMouseClick);
-            DocumentModifiedClickCommand = new RelayCommand(OnModifiedMouseClick);
-            DeleteShapeCommand = new RelayCommand<KeyEventArgs>(OnDelete);
+            DocumentClickCommand = new RelayCommand<Modifiers>(OnMouseClick);
+            DeleteShapeCommand = new RelayCommand(OnDelete);
             TagsTreeViewModel = new TagsTreeViewModel();
             ShapesTreeViewModel = new ShapesTreeViewModel();
             RecentFilesMenuListViewModel = new RecentFilesMenuListViewModel(4);
@@ -39,9 +38,17 @@ namespace TallComponents.Samples.ShapesBrowser
             ShapesTreeViewModel.SetTagsTree(TagsTreeViewModel);
         }
 
+        public enum Modifiers
+        {
+            None,
+            Shift,
+            Ctrl,
+            CtrlShift
+        }
+
         public ICommand DeleteShapeCommand { get; set; }
         public ICommand DocumentClickCommand { get; set; }
-        public ICommand DocumentModifiedClickCommand { get; set; }
+
         public ICommand OpenCommand { get; set; }
         public ICommand SaveCommand { get; set; }
 
@@ -110,11 +117,22 @@ namespace TallComponents.Samples.ShapesBrowser
             var fixedPage = fixedDocument.Pages[0].Child;
 
             _overlay = new Canvas();
+
             _overlay.InputBindings.Add(new InputBinding(DeleteShapeCommand, new KeyGesture(Key.Delete)));
             var mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick};
-            _overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture));
+            _overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture)
+                {CommandParameter = Modifiers.None});
             mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick, Modifiers = ModifierKeys.Control};
-            _overlay.InputBindings.Add(new InputBinding(DocumentModifiedClickCommand, mouseGesture));
+            _overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture)
+                {CommandParameter = Modifiers.Ctrl});
+            mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick, Modifiers = ModifierKeys.Shift};
+            _overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture)
+                {CommandParameter = Modifiers.Shift});
+            mouseGesture = new MouseGesture
+                {MouseAction = MouseAction.LeftClick, Modifiers = ModifierKeys.Shift | ModifierKeys.Control};
+            _overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture)
+                {CommandParameter = Modifiers.CtrlShift});
+
             ShapesTreeViewModel.SetCanvas(_overlay);
             _overlay.Width = fixedPage.Width;
             _overlay.Height = fixedPage.Height;
@@ -151,7 +169,7 @@ namespace TallComponents.Samples.ShapesBrowser
             ItemsSource = _currentDocument.Pages;
         }
 
-        private void OnDelete(KeyEventArgs e)
+        private void OnDelete()
         {
             ShapesTreeViewModel.RemoveSelectedItems();
             var root = ShapesTreeViewModel.GetRoot();
@@ -173,17 +191,12 @@ namespace TallComponents.Samples.ShapesBrowser
             DrawPage(prevIndex);
         }
 
-        private void OnModifiedMouseClick()
+        private void OnMouseClick(Modifiers modifier)
         {
-            MouseClick(true);
+            MouseClick(modifier);
         }
 
-        private void OnMouseClick()
-        {
-            MouseClick(false);
-        }
-
-        private void MouseClick(bool modified)
+        private void MouseClick(Modifiers modified)
         {
             var pos = Mouse.GetPosition(_overlay);
             Shape shape = ShapesTreeViewModel.FindShape(null, null, pos);

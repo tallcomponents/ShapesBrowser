@@ -201,19 +201,14 @@ namespace TallComponents.Samples.ShapesBrowser.Views
         private void SelectMultipleItemsRandomly(TreeView treeView, TreeViewItem treeViewItem)
         {
             SetIsItemSelected(treeViewItem, !GetIsItemSelected(treeViewItem));
-            if (_startItem == null)
+            if (GetIsItemSelected(treeViewItem))
             {
-                if (GetIsItemSelected(treeViewItem))
-                {
-                    _startItem = treeViewItem;
-                }
+                _startItem = treeViewItem;
             }
-            else
+
+            if (GetSelectedItems(treeView).Count == 0)
             {
-                if (GetSelectedItems(treeView).Count == 0)
-                {
-                    _startItem = null;
-                }
+                _startItem = null;
             }
         }
 

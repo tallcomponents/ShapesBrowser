@@ -4,7 +4,7 @@ using TallComponents.PDF.Tags;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
-    public class TagViewModel : BaseViewModel
+    internal class TagViewModel : BaseViewModel
     {
         private bool _isExpanded;
         private bool _isSelected;

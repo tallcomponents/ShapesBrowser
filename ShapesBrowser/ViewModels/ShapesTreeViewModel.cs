@@ -15,21 +15,18 @@ using Shape = TallComponents.PDF.Shapes.Shape;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
-    public class ShapesTreeViewModel : BaseViewModel
+    internal class ShapesTreeViewModel : BaseViewModel
     {
         private ShapeCollectionViewModel _rootShapeCollection;
         private Canvas _overlay;
-        private ShapeCollectionViewModel _selectedItem;
-        private HashSet<ShapeCollectionViewModel> _selectedItems;
         private readonly List<ShapeCollection> _shapeCollections = new List<ShapeCollection>();
         private TagsTreeViewModel _tagsTreeViewModel;
         private ObservableCollection<ShapeCollectionViewModel> _viewItems;
-        private bool _modified;
         private ObservableCollection<ShapeCollectionViewModel> _selectedItemsViewModel;
+        private ShapeCollectionViewModel _startItem;
 
         public ShapesTreeViewModel()
         {
-            _selectedItems = new HashSet<ShapeCollectionViewModel>();
             SelectedItems  = new ObservableCollection<ShapeCollectionViewModel>();
             SelectedItems.CollectionChanged += OnSelectedItemsCollectionChanged;
         }
@@ -90,9 +87,11 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public void Deselect()
         {
-            foreach (var selectedItem in _selectedItems)
+            var selectedItems = SelectedItems.ToList();
+
+            foreach (var shapeCollectionViewModel in selectedItems)
             {
-                selectedItem.IsSelected = false;
+                shapeCollectionViewModel.IsSelected = false;
             }
         }
 
@@ -213,32 +212,76 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public void RemoveSelectedItems()
         {
-            foreach (var shape in _selectedItems)
+            foreach (var shape in SelectedItems)
             {
                 shape.Shape.Parent?.Remove(shape.Shape);
             }
-            _selectedItems.Clear();
+            SelectedItems.Clear();
         }
 
-        public void Select(ContentShape shape, bool modified)
+        public void Select(ContentShape shape, MainWindowViewModel.Modifiers modified)
         {
-            this._modified = modified;
-
-            // WIP - deselect everything if control is not being held
-           /* if (!_modified)
+            switch (modified)
             {
-                foreach (var shapeCollectionViewModel in SelectedItems)
+                case MainWindowViewModel.Modifiers.None:
                 {
-                    shapeCollectionViewModel.IsSelected = false;
-                }
-            }*/
+                    var selectedItems = SelectedItems.ToList();
+                    foreach (var shapeCollectionViewModel in selectedItems)
+                    {
+                        shapeCollectionViewModel.IsSelected = false;
+                    }
 
-            _rootShapeCollection.Select(shape);
+                    _startItem = _rootShapeCollection.Select(shape);
+                    break;
+                }
+                case MainWindowViewModel.Modifiers.Ctrl:
+                    _startItem = _rootShapeCollection.Select(shape);
+                    break;
+                case MainWindowViewModel.Modifiers.Shift:
+                case MainWindowViewModel.Modifiers.CtrlShift:
+                {
+                    var list = ViewItems[0].ToList();
+                    var selectedItems = SelectedItems.ToList();
+
+                    if (modified != MainWindowViewModel.Modifiers.CtrlShift)
+                    {
+                        foreach (var shapeCollectionViewModel in selectedItems)
+                        {
+                            shapeCollectionViewModel.IsSelected = false;
+                        }
+                    }
+
+                    var endItem = _rootShapeCollection.Select(shape);
+                    if (endItem == _startItem)
+                    {
+                        return;
+                    }
+
+                    var isBetween = false;
+                    foreach (var item in list)
+                    {
+                        if (item == endItem || item == _startItem)
+                        {
+                            isBetween = !isBetween;
+
+                            item.IsSelected = true;
+                            continue;
+                        }
+
+                        if (isBetween)
+                        {
+                            item.IsSelected = true;
+                        }
+                    }
+                    break;
+                }
+            }
         }
 
         private void OnSelectedItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             _overlay.Children.Clear();
+            _rootShapeCollection.IsMarked = false;
             var collection =  sender as ObservableCollection<ShapeCollectionViewModel>;
 
             foreach (var shapeVM in collection)
@@ -252,7 +295,7 @@ namespace TallComponents.Samples.ShapesBrowser
                 if (selectedItem is ContentShape contentShape)
                 {
                     var transform = GetTransform(contentShape);
-                    MarkChildShapes(contentShape, transform);
+                    MarkChildShapes(shapeVM, transform);
                     _tagsTreeViewModel.Select(contentShape);
                 }
             }
@@ -324,15 +367,15 @@ namespace TallComponents.Samples.ShapesBrowser
             return transform;
         }
 
-        private void MarkChildShapes(Shape shape, TransformGroup parentTransform)
+        private void MarkChildShapes(ShapeCollectionViewModel shape, TransformGroup parentTransform)
         {
-            if (null == shape || null == parentTransform) return;
-            switch (shape)
+            if (null == shape || null == parentTransform || shape.IsMarked) return;
+            switch (shape.Shape)
             {
                 case ShapeCollection shapeCollection:
                 {
                     var transform = CreateTransformGroup(parentTransform, shapeCollection);
-                        foreach (var child in shapeCollection) MarkChildShapes(child, transform);
+                        foreach (var child in shape.Children) MarkChildShapes(child, transform);
                     break;
                 }
                 case TextShape text:
@@ -345,8 +388,10 @@ namespace TallComponents.Samples.ShapesBrowser
                         Width = text.MeasuredWidth,
                         Height = text.MeasuredHeight,
                     };
-                    _overlay.Children.Add(rectangle);
-                    break;
+                        _overlay.Children.Add(rectangle);
+                        shape.IsMarked = true;
+
+                        break;
                 }
                 case ImageShape image:
                 {

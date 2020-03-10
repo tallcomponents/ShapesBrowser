@@ -5,7 +5,7 @@ using TallComponents.PDF.Tags;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
-    public class TagsTreeViewModel : BaseViewModel
+    internal class TagsTreeViewModel : BaseViewModel
     {
         private TagViewModel _rootTagViewModel;
         private ShapesTreeViewModel _shapesTreeViewModel;
@@ -47,7 +47,7 @@ namespace TallComponents.Samples.ShapesBrowser
             if (_suppressChangeEvent) return;
             if (tagVM.IsSelected)
             {
-                _shapesTreeViewModel.Select(tagVM.Shape as ContentShape, false);
+                _shapesTreeViewModel.Select(tagVM.Shape as ContentShape, MainWindowViewModel.Modifiers.None);
             }
         }
 
