@@ -14,7 +14,7 @@ namespace TallComponents.Samples.ShapesBrowser
 
         private readonly ShapesTreeViewModel _shapesTreeViewModel;
 
-        public ShapeCollectionViewModel(Shape person, ShapesTreeViewModel shapesTreeViewModel) : this(person, null, shapesTreeViewModel)
+        public ShapeCollectionViewModel(Shape shape, ShapesTreeViewModel shapesTreeViewModel) : this(shape, null, shapesTreeViewModel)
         {
         }
 
