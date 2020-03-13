@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Shapes;
 using TallComponents.PDF.Shapes;
+using Shape = TallComponents.PDF.Shapes.Shape;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
@@ -86,6 +88,8 @@ namespace TallComponents.Samples.ShapesBrowser
                 return string.Format("{0} {1}", shapeType, Shape.ID);
             }
         }
+
+        public System.Windows.Shapes.Shape OverlayShape { get; set; }
 
         public List<ShapeCollectionViewModel> ToList()
         {

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Converters;
 using System.Windows.Shapes;
 using TallComponents.PDF;
 using TallComponents.PDF.Shapes;
@@ -25,10 +23,11 @@ namespace TallComponents.Samples.ShapesBrowser
         private ObservableCollection<ShapeCollectionViewModel> _viewItems;
         private ObservableCollection<ShapeCollectionViewModel> _selectedItemsViewModel;
         private ShapeCollectionViewModel _startItem;
+        private bool _suspendTagDeselection;
 
         public ShapesTreeViewModel()
         {
-            SelectedItems  = new ObservableCollection<ShapeCollectionViewModel>();
+            SelectedItems = new ObservableCollection<ShapeCollectionViewModel>();
             SelectedItems.CollectionChanged += OnSelectedItemsCollectionChanged;
         }
 
@@ -86,6 +85,25 @@ namespace TallComponents.Samples.ShapesBrowser
             _shapeCollections.Add(shapeCollection);
         }
 
+        public void Deselect(ShapeCollectionViewModel contentShape)
+        {
+            if (contentShape == null) return;
+            if (contentShape.Shape is ShapeCollection shapeCollection)
+            {
+                contentShape.IsSelected = false;
+                foreach (var child in contentShape.Children)
+                {
+                    Deselect(child);
+                }
+            }
+            else
+            {
+                _overlay.Children.Remove(contentShape.OverlayShape);
+                contentShape.IsMarked = false;
+                contentShape.IsSelected = false;
+            }
+        }
+
         public void Deselect()
         {
             var selectedItems = SelectedItems.ToList();
@@ -101,6 +119,7 @@ namespace TallComponents.Samples.ShapesBrowser
             get => _selectedItemsViewModel;
             set => SetProperty(ref _selectedItemsViewModel, value);
         }
+
         public ContentShape FindShape(Shape shape, TransformGroup parentTransform, Point position)
         {
             ContentShape shapeFound = null;
@@ -133,14 +152,14 @@ namespace TallComponents.Samples.ShapesBrowser
                 case TextShape text:
                 {
                     var transform = CreateTransformGroup(parentTransform, text);
-                        var rect = transform.TransformBounds(new Rect(new Size(text.MeasuredWidth, text.MeasuredHeight)));
+                    var rect = transform.TransformBounds(new Rect(new Size(text.MeasuredWidth, text.MeasuredHeight)));
                     if (rect.Contains(position)) shapeFound = text;
                     break;
                 }
                 case ImageShape image:
                 {
                     var transform = CreateTransformGroup(parentTransform, image);
-                        var rect = transform.TransformBounds(new Rect(new Size(image.Width, image.Height)));
+                    var rect = transform.TransformBounds(new Rect(new Size(image.Width, image.Height)));
                     if (rect.Contains(position)) shapeFound = image;
                     break;
                 }
@@ -228,7 +247,6 @@ namespace TallComponents.Samples.ShapesBrowser
                     GenerateShapeTagBinding(child);
                 }
             }
-  
         }
 
         public void RemoveSelectedItems()
@@ -237,6 +255,7 @@ namespace TallComponents.Samples.ShapesBrowser
             {
                 shape.Shape.Parent?.Remove(shape.Shape);
             }
+
             SelectedItems.Clear();
         }
 
@@ -246,16 +265,18 @@ namespace TallComponents.Samples.ShapesBrowser
             {
                 case MainWindowViewModel.Modifiers.None:
                 {
+                    if (!_suspendTagDeselection)
+                    {
                         var selectedItems = SelectedItems.ToList();
 
                         foreach (var shapeCollectionViewModel in selectedItems)
                         {
                             shapeCollectionViewModel.IsSelected = false;
                         }
+                    }
 
-                        _startItem = _rootShapeCollection.Select(shape);
-                        _tagsTreeViewModel.Select(shape);
-                        break;
+                    _startItem = _rootShapeCollection.Select(shape);
+                    break;
                 }
                 case MainWindowViewModel.Modifiers.Ctrl:
                     _startItem = _rootShapeCollection.Select(shape);
@@ -296,20 +317,29 @@ namespace TallComponents.Samples.ShapesBrowser
                             item.IsSelected = true;
                         }
                     }
+
                     break;
                 }
             }
         }
 
-        private void OnSelectedItemsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void OnSelectedItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            _overlay.Children.Clear();
-            _rootShapeCollection.IsMarked = false;
-            _tagsTreeViewModel.DeselectAll();
-            var collection =  sender as ObservableCollection<ShapeCollectionViewModel>;
+            if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                _overlay.Children.Clear();
+                _rootShapeCollection.IsMarked = false;
 
+                if (!_suspendTagDeselection)
+                {
+                    _tagsTreeViewModel.DeselectAll();
+                }
 
-            for (int i = 0; i < collection.Count; i++)
+                return;
+            }
+
+            var collection = sender as ObservableCollection<ShapeCollectionViewModel>;
+            for (var i = 0; i < collection.Count; i++)
             {
                 var shapeVM = collection[i];
                 if (shapeVM == null)
@@ -336,7 +366,7 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public void SetTagsTree(TagsTreeViewModel tagsTreeViewModel)
         {
-            this._tagsTreeViewModel = tagsTreeViewModel;
+            _tagsTreeViewModel = tagsTreeViewModel;
         }
 
         internal ShapeCollection GetParent(Shape shape)
@@ -412,22 +442,23 @@ namespace TallComponents.Samples.ShapesBrowser
                 case TextShape text:
                 {
                     var transform = CreateTransformGroup(parentTransform, text);
-                        var rectangle = new Rectangle
+                    var rectangle = new Rectangle
                     {
                         RenderTransform = transform,
                         Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
                         Width = text.MeasuredWidth,
-                        Height = text.MeasuredHeight,
+                        Height = text.MeasuredHeight
                     };
-                        _overlay.Children.Add(rectangle);
-                        shape.IsMarked = true;
-                        ret = true;
-                        break;
+                    _overlay.Children.Add(rectangle);
+                    shape.IsMarked = true;
+                    shape.OverlayShape = rectangle;
+                    ret = true;
+                    break;
                 }
                 case ImageShape image:
                 {
                     var transform = CreateTransformGroup(parentTransform, image);
-                        var rectangle = new Rectangle
+                    var rectangle = new Rectangle
                     {
                         RenderTransform = transform,
                         Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
@@ -436,13 +467,15 @@ namespace TallComponents.Samples.ShapesBrowser
                     };
                     _overlay.Children.Add(rectangle);
                     shape.IsMarked = true;
+                    shape.OverlayShape = rectangle;
+
                     ret = true;
-                        break;
+                    break;
                 }
                 case FreeHandShape freehand:
                 {
                     var transform = CreateTransformGroup(parentTransform, freehand);
-                        var path = new Path();
+                    var path = new Path();
                     var geometry = new PathGeometry();
                     path.Data = geometry;
                     foreach (var freehandPath in freehand.Paths)
@@ -480,11 +513,29 @@ namespace TallComponents.Samples.ShapesBrowser
                     path.RenderTransform = transform;
                     _overlay.Children.Add(path);
                     shape.IsMarked = true;
+                    shape.OverlayShape = path;
+
                     ret = true;
-                        break;
+                    break;
                 }
             }
+
             return ret;
+        }
+
+        public void SuspendTagDeselection(bool suspendTagDeselection)
+        {
+            _suspendTagDeselection = suspendTagDeselection;
+        }
+
+        public void DeselectAll()
+        {
+            var selectedItems = SelectedItems.ToList();
+
+            foreach (var shapeCollectionViewModel in selectedItems)
+            {
+                shapeCollectionViewModel.IsSelected = false;
+            }
         }
     }
 }

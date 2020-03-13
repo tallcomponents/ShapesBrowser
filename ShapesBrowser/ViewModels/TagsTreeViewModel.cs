@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using TallComponents.PDF;
@@ -53,6 +54,8 @@ namespace TallComponents.Samples.ShapesBrowser
             if (null == shape.ParentTag) return;
             _suppressChangeEvent = true;
             _rootTagViewModel.Select(shape.ParentTag);
+            _shapesTreeViewModel.SuspendTagDeselection(false);
+            _suppressChangeEvent = false;
         }
 
         public void SetShape(ShapeCollectionViewModel shape)
@@ -67,18 +70,24 @@ namespace TallComponents.Samples.ShapesBrowser
 
         private void OnSelectedItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            var collection = sender as ObservableCollection<TagViewModel>;
-
-            for (var i = 0; i < collection.Count; i++)
+            if (!_suppressChangeEvent)
             {
-                var tagVM = collection[i];
-                if (tagVM.Shape != null && tagVM.IsSelected && !tagVM.Shape.IsSelected && !_suppressChangeEvent)
+                _shapesTreeViewModel.SuspendTagDeselection(true);
+                _shapesTreeViewModel.DeselectAll();
+                var collection = sender as ObservableCollection<TagViewModel>;
+                for (var i = 0; i < collection.Count; i++)
                 {
-                    _shapesTreeViewModel.Select(tagVM.Shape.Shape as ContentShape, MainWindowViewModel.Modifiers.None);
+                    var tagVM = collection[i];
+                    if (tagVM.Shape != null && tagVM.IsSelected && !tagVM.Shape.IsSelected)
+                    {
+                        _shapesTreeViewModel.SuspendTagDeselection(true);
+                        _shapesTreeViewModel.Select(tagVM.Shape.Shape as ContentShape,
+                            MainWindowViewModel.Modifiers.None);
+                    }
                 }
-            }
 
-            _suppressChangeEvent = false;
+                _suppressChangeEvent = false;
+            }
         }
     }
 }
