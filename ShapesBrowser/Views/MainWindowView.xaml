@@ -58,15 +58,15 @@
                 </Grid.RowDefinitions>
 
                 <DockPanel>
-                    <TreeView Height="Auto" DataContext="{Binding TagsTreeViewModel}" ItemsSource="{Binding ViewItems}">
+                    <views:MultipleSelectionTreeView Height="Auto" DataContext="{Binding TagsTreeViewModel}" ItemsSource="{Binding ViewItems}" SelectedItems="{Binding SelectedItems}">
                         <TreeView.ItemContainerStyle>
                             <Style TargetType="{x:Type TreeViewItem}">
                                 <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                                <Setter Property="views:MultipleSelectionTreeView.IsItemSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                                 <Setter Property="FontWeight" Value="Normal" />
                                 <Style.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="FontWeight" Value="Bold" />
+                                    <Trigger Property="views:MultipleSelectionTreeView.IsItemSelected" Value="True">
+                                        <Setter Property="Background" Value="SkyBlue" />
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -77,7 +77,7 @@
                                 <TextBlock Text="{Binding Text}" />
                             </HierarchicalDataTemplate>
                         </TreeView.ItemTemplate>
-                    </TreeView>
+                    </views:MultipleSelectionTreeView>
                 </DockPanel>
             </Grid>
 

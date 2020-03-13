@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Converters;
 using System.Windows.Shapes;
 using TallComponents.PDF;
 using TallComponents.PDF.Shapes;
@@ -207,7 +208,27 @@ namespace TallComponents.Samples.ShapesBrowser
             var root = new ShapeCollection {shapes};
             AddItem(root, null);
             _rootShapeCollection = new ShapeCollectionViewModel(root, this);
+            GenerateShapeTagBinding(_rootShapeCollection);
+
             ViewItems = new ObservableCollection<ShapeCollectionViewModel>(new[] {_rootShapeCollection});
+        }
+
+        private void GenerateShapeTagBinding(ShapeCollectionViewModel shapeCollectionViewModel)
+        {
+            var contentShape = shapeCollectionViewModel.Shape as ContentShape;
+            if (contentShape?.ParentTag != null)
+            {
+                _tagsTreeViewModel.SetShape(shapeCollectionViewModel);
+            }
+
+            if (shapeCollectionViewModel.Children != null)
+            {
+                foreach (var child in shapeCollectionViewModel.Children)
+                {
+                    GenerateShapeTagBinding(child);
+                }
+            }
+  
         }
 
         public void RemoveSelectedItems()
@@ -225,14 +246,16 @@ namespace TallComponents.Samples.ShapesBrowser
             {
                 case MainWindowViewModel.Modifiers.None:
                 {
-                    var selectedItems = SelectedItems.ToList();
-                    foreach (var shapeCollectionViewModel in selectedItems)
-                    {
-                        shapeCollectionViewModel.IsSelected = false;
-                    }
+                        var selectedItems = SelectedItems.ToList();
 
-                    _startItem = _rootShapeCollection.Select(shape);
-                    break;
+                        foreach (var shapeCollectionViewModel in selectedItems)
+                        {
+                            shapeCollectionViewModel.IsSelected = false;
+                        }
+
+                        _startItem = _rootShapeCollection.Select(shape);
+                        _tagsTreeViewModel.Select(shape);
+                        break;
                 }
                 case MainWindowViewModel.Modifiers.Ctrl:
                     _startItem = _rootShapeCollection.Select(shape);
@@ -282,11 +305,14 @@ namespace TallComponents.Samples.ShapesBrowser
         {
             _overlay.Children.Clear();
             _rootShapeCollection.IsMarked = false;
+            _tagsTreeViewModel.DeselectAll();
             var collection =  sender as ObservableCollection<ShapeCollectionViewModel>;
 
-            foreach (var shapeVM in collection)
+
+            for (int i = 0; i < collection.Count; i++)
             {
-                if(shapeVM == null)
+                var shapeVM = collection[i];
+                if (shapeVM == null)
                     continue;
 
                 if (shapeVM.IsSelected == false) continue;
@@ -296,7 +322,9 @@ namespace TallComponents.Samples.ShapesBrowser
                 {
                     var transform = GetTransform(contentShape);
                     MarkChildShapes(shapeVM, transform);
-                    _tagsTreeViewModel.Select(contentShape);
+                    {
+                        _tagsTreeViewModel.Select(contentShape);
+                    }
                 }
             }
         }
@@ -333,11 +361,6 @@ namespace TallComponents.Samples.ShapesBrowser
             }
 
             Add(shape as ShapeCollection);
-            var contentShape = shape as ContentShape;
-            if (contentShape?.ParentTag != null)
-            {
-                _tagsTreeViewModel.SetShape(contentShape);
-            }
 
             if (shape is ShapeCollection)
             {
@@ -367,15 +390,23 @@ namespace TallComponents.Samples.ShapesBrowser
             return transform;
         }
 
-        private void MarkChildShapes(ShapeCollectionViewModel shape, TransformGroup parentTransform)
+        private bool MarkChildShapes(ShapeCollectionViewModel shape, TransformGroup parentTransform)
         {
-            if (null == shape || null == parentTransform || shape.IsMarked) return;
+            if (null == shape || null == parentTransform || shape.IsMarked) return false;
+            bool ret = false;
             switch (shape.Shape)
             {
                 case ShapeCollection shapeCollection:
                 {
                     var transform = CreateTransformGroup(parentTransform, shapeCollection);
-                        foreach (var child in shape.Children) MarkChildShapes(child, transform);
+                    foreach (var child in shape.Children)
+                    {
+                        if (MarkChildShapes(child, transform))
+                        {
+                            ret = true;
+                        }
+                    }
+
                     break;
                 }
                 case TextShape text:
@@ -390,7 +421,7 @@ namespace TallComponents.Samples.ShapesBrowser
                     };
                         _overlay.Children.Add(rectangle);
                         shape.IsMarked = true;
-
+                        ret = true;
                         break;
                 }
                 case ImageShape image:
@@ -404,7 +435,9 @@ namespace TallComponents.Samples.ShapesBrowser
                         Height = image.Height
                     };
                     _overlay.Children.Add(rectangle);
-                    break;
+                    shape.IsMarked = true;
+                    ret = true;
+                        break;
                 }
                 case FreeHandShape freehand:
                 {
@@ -446,9 +479,12 @@ namespace TallComponents.Samples.ShapesBrowser
                     path.StrokeThickness = 1;
                     path.RenderTransform = transform;
                     _overlay.Children.Add(path);
-                    break;
+                    shape.IsMarked = true;
+                    ret = true;
+                        break;
                 }
             }
+            return ret;
         }
     }
 }

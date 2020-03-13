@@ -45,15 +45,11 @@ namespace TallComponents.Samples.ShapesBrowser
         public bool IsSelected
         {
             get => _isSelected;
-            set
-            {
-                SetProperty(ref _isSelected, value);
-                _tagsTreeViewModel.SelectedItemChanged(this);
-            }
+            set => SetProperty(ref _isSelected, value);
         }
 
         public TagViewModel Parent { get; }
-        public Shape Shape { get; private set; }
+        public ShapeCollectionViewModel Shape { get; private set; }
         public Tag Tag { get; }
 
         public string Text
@@ -88,9 +84,10 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
-        public void SetShape(ContentShape shape)
+        public void SetShape(ShapeCollectionViewModel shape)
         {
-            if (Tag == shape.ParentTag)
+            ContentShape contentShape = shape.Shape as ContentShape;
+            if (Tag == contentShape.ParentTag)
             {
                 Shape = shape;
             }
