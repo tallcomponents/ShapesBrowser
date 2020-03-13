@@ -10,21 +10,21 @@ namespace TallComponents.Samples.ShapesBrowser
         private bool _isSelected;
         private readonly TagsTreeViewModel _tagsTreeViewModel;
 
-        public TagViewModel(Tag person, TagsTreeViewModel shapesTreeViewModel) : this(person, null, shapesTreeViewModel)
+        public TagViewModel(Tag tag, TagsTreeViewModel shapesTreeViewModel) : this(tag, null, shapesTreeViewModel)
         {
         }
 
-        private TagViewModel(Tag shape, TagViewModel parent, TagsTreeViewModel shapesTreeViewModel)
+        private TagViewModel(Tag tag, TagViewModel parent, TagsTreeViewModel shapesTreeViewModel)
         {
             _tagsTreeViewModel = shapesTreeViewModel;
-            Tag = shape;
+            Tag = tag;
             Parent = parent;
             Children = new ObservableCollection<TagViewModel>();
-            foreach (var child in shape.Childs)
+            foreach (var child in tag.Childs)
             {
-                if (child is Tag tag)
+                if (child is Tag childTag)
                 {
-                    Children.Add(new TagViewModel(tag, this, shapesTreeViewModel));
+                    Children.Add(new TagViewModel(childTag, this, shapesTreeViewModel));
                 }
             }
         }
