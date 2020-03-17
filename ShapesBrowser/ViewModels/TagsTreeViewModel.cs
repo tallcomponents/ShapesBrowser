@@ -14,6 +14,7 @@ namespace TallComponents.Samples.ShapesBrowser
         private ObservableCollection<TagViewModel> _selectedItemsViewModel;
         private ShapesTreeViewModel _shapesTreeViewModel;
         private bool _suppressChangeEvent;
+        private bool _suppressTagDeselection;
 
         private ObservableCollection<TagViewModel> _viewItems;
         public TagsTreeViewModel()
@@ -47,11 +48,12 @@ namespace TallComponents.Samples.ShapesBrowser
             if (null == shape.ParentTag) return;
             _suppressChangeEvent = true;
             _rootTagViewModel.Select(shape.ParentTag);
-            _shapesTreeViewModel.SuspendTagDeselection(false);
+            _suppressTagDeselection = false;
         }
 
         public void Deselect(ContentShape shape)
         {
+            if (_suppressTagDeselection) return;
             if (null == shape.ParentTag) return;
             _suppressChangeEvent = true;
             _rootTagViewModel.Deselect(shape.ParentTag);
@@ -71,7 +73,7 @@ namespace TallComponents.Samples.ShapesBrowser
         {
             if (!_suppressChangeEvent)
             {
-                _shapesTreeViewModel.SuspendTagDeselection(true);
+                _suppressTagDeselection = true;
                 _shapesTreeViewModel.Deselect();
                 var collection = sender as ObservableCollection<TagViewModel>;
                 for (var i = 0; i < collection.Count; i++)
@@ -79,7 +81,7 @@ namespace TallComponents.Samples.ShapesBrowser
                     var tagVM = collection[i];
                     if (tagVM.Shape != null && tagVM.IsSelected && !tagVM.Shape.IsSelected)
                     {
-                        _shapesTreeViewModel.SuspendTagDeselection(true);
+                        _suppressTagDeselection = true;
                         _shapesTreeViewModel.Select(tagVM.Shape.Shape as ContentShape,
                             MainWindowViewModel.Modifiers.Ctrl);
                     }

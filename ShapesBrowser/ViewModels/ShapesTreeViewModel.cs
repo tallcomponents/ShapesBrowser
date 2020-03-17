@@ -23,7 +23,6 @@ namespace TallComponents.Samples.ShapesBrowser
         private ObservableCollection<ShapeCollectionViewModel> _viewItems;
         private ObservableCollection<ShapeCollectionViewModel> _selectedItemsViewModel;
         private ShapeCollectionViewModel _startItem;
-        private bool _suspendTagDeselection;
 
         public ShapesTreeViewModel()
         {
@@ -229,7 +228,6 @@ namespace TallComponents.Samples.ShapesBrowser
             return _shapeCollections.Count;
         }
 
-
         public void Initialize(Page page)
         {
             _shapeCollections.Clear();
@@ -328,8 +326,7 @@ namespace TallComponents.Samples.ShapesBrowser
                 {
                     var shape = oldItem as ShapeCollectionViewModel;
                     Deselect(shape);
-                    if (!_suspendTagDeselection)
-                        _tagsTreeViewModel.Deselect(shape.Shape as ContentShape);
+                    _tagsTreeViewModel.Deselect(shape.Shape as ContentShape);
                 }
 
                 return;
@@ -513,11 +510,6 @@ namespace TallComponents.Samples.ShapesBrowser
             }
 
             return ret;
-        }
-
-        public void SuspendTagDeselection(bool suspendTagDeselection)
-        {
-            _suspendTagDeselection = suspendTagDeselection;
         }
     }
 }
