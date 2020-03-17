@@ -424,10 +424,9 @@ namespace TallComponents.Samples.ShapesBrowser
                         }
                     }
                     shape.IsSelected = true;
-                    shape.IsExpanded = true;
-
-                        break;
+                    break;
                 }
+
                 case TextShape text:
                 {
                     var transform = CreateTransformGroup(parentTransform, text);
@@ -441,7 +440,6 @@ namespace TallComponents.Samples.ShapesBrowser
                     _overlay.Children.Add(rectangle);
                     shape.IsMarked = true;
                     shape.IsSelected = true;
-                    shape.IsExpanded = true;
                     shape.OverlayShape = rectangle;
                     ret = true;
                     break;
@@ -460,46 +458,51 @@ namespace TallComponents.Samples.ShapesBrowser
                     shape.IsMarked = true;
                     shape.OverlayShape = rectangle;
                     shape.IsSelected = true;
-                    shape.IsExpanded = true;
                     ret = true;
                     break;
                 }
-                case FreeHandShape freehand:
+                case ClipShape _:
+                case FreeHandShape _:
                 {
-                    var transform = CreateTransformGroup(parentTransform, freehand);
+                    var clipShape = shape.Shape as ClipShape;
+                    var freeHandShape = shape.Shape as FreeHandShape;
+                    var contentShape = (ContentShape) clipShape ?? freeHandShape;
+                    var paths = clipShape != null ? clipShape.Paths : freeHandShape.Paths;
+
+                    var transform = CreateTransformGroup(parentTransform, contentShape);
                     var path = new Path();
                     var geometry = new PathGeometry();
                     path.Data = geometry;
-                    foreach (var freehandPath in freehand.Paths)
+                    foreach (var freehandPath in paths)
                     {
-                        var figure = new PathFigure {IsClosed = freehandPath.Closed};
+                        var figure = new PathFigure { IsClosed = freehandPath.Closed };
                         foreach (var segment in freehandPath.Segments)
                         {
                             switch (segment)
                             {
                                 case FreeHandStartSegment start:
-                                {
-                                    figure.StartPoint = new Point(start.X, start.Y);
-                                    break;
-                                }
+                                    {
+                                        figure.StartPoint = new Point(start.X, start.Y);
+                                        break;
+                                    }
                                 case FreeHandLineSegment line:
-                                {
-                                    figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
-                                    break;
-                                }
+                                    {
+                                        figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
+                                        break;
+                                    }
                                 case FreeHandBezierSegment bezier:
-                                {
-                                    figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
-                                        new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
-                                    break;
-                                }
+                                    {
+                                        figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
+                                            new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
+                                        break;
+                                    }
                             }
                         }
 
                         geometry.Figures.Add(figure);
                     }
 
-                    path.Fill = new SolidColorBrush(Colors.Red);
+                    path.Fill = new SolidColorBrush(Color.FromArgb(44, 255, 0, 0));
                     path.Stroke = new SolidColorBrush(Colors.Green);
                     path.StrokeThickness = 1;
                     path.RenderTransform = transform;
@@ -507,7 +510,6 @@ namespace TallComponents.Samples.ShapesBrowser
                     shape.IsMarked = true;
                     shape.OverlayShape = path;
                     shape.IsSelected = true;
-                    shape.IsExpanded = true;
                     ret = true;
                     break;
                 }
