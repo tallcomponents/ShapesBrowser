@@ -12,7 +12,6 @@ namespace TallComponents.Samples.ShapesBrowser
     {
         private bool _isExpanded;
         private bool _isSelected;
-        private bool _isMarked;
 
         private readonly ShapesTreeViewModel _shapesTreeViewModel;
 
@@ -48,22 +47,7 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
-        public bool IsMarked
-        {
-            get => _isMarked;
-            set
-            {
-                _isMarked = value;
-                if (value == false)
-                {
-                    if (Children == null) return;
-                    foreach (var child in Children)
-                    {
-                        child.IsMarked = false;
-                    }
-                }
-            }
-        }
+        public bool IsMarked { get; set; }
 
         public bool IsSelected
         {

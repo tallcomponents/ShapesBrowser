@@ -88,9 +88,14 @@ namespace TallComponents.Samples.ShapesBrowser
         public void Deselect(ShapeCollectionViewModel contentShape)
         {
             if (contentShape == null) return;
-            if (contentShape.Shape is ShapeCollection shapeCollection)
+            if (contentShape.Parent?.Shape is ShapeCollection)
+            {
+                contentShape.Parent.IsSelected = false;
+            }
+            if (contentShape.Shape is ShapeCollection)
             {
                 contentShape.IsSelected = false;
+                if (IsAtLeastOneDeselected(contentShape)) return;
                 foreach (var child in contentShape.Children)
                 {
                     Deselect(child);
@@ -102,6 +107,11 @@ namespace TallComponents.Samples.ShapesBrowser
                 contentShape.IsMarked = false;
                 contentShape.IsSelected = false;
             }
+        }
+
+        private bool IsAtLeastOneDeselected(ShapeCollectionViewModel contentShape)
+        {
+            return contentShape.Shape is ShapeCollection && contentShape.Children.Any(child => !child.IsSelected);
         }
 
         public void Deselect()
@@ -265,16 +275,7 @@ namespace TallComponents.Samples.ShapesBrowser
             {
                 case MainWindowViewModel.Modifiers.None:
                 {
-                    if (!_suspendTagDeselection)
-                    {
-                        var selectedItems = SelectedItems.ToList();
-
-                        foreach (var shapeCollectionViewModel in selectedItems)
-                        {
-                            shapeCollectionViewModel.IsSelected = false;
-                        }
-                    }
-
+                    Deselect();
                     _startItem = _rootShapeCollection.Select(shape);
                     break;
                 }
@@ -285,14 +286,10 @@ namespace TallComponents.Samples.ShapesBrowser
                 case MainWindowViewModel.Modifiers.CtrlShift:
                 {
                     var list = ViewItems[0].ToList();
-                    var selectedItems = SelectedItems.ToList();
 
                     if (modified != MainWindowViewModel.Modifiers.CtrlShift)
                     {
-                        foreach (var shapeCollectionViewModel in selectedItems)
-                        {
-                            shapeCollectionViewModel.IsSelected = false;
-                        }
+                        Deselect();
                     }
 
                     var endItem = _rootShapeCollection.Select(shape);
@@ -327,12 +324,12 @@ namespace TallComponents.Samples.ShapesBrowser
         {
             if (e.Action == NotifyCollectionChangedAction.Remove)
             {
-                _overlay.Children.Clear();
-                _rootShapeCollection.IsMarked = false;
-
-                if (!_suspendTagDeselection)
+                foreach (var oldItem in e.OldItems)
                 {
-                    _tagsTreeViewModel.DeselectAll();
+                    var shape = oldItem as ShapeCollectionViewModel;
+                    Deselect(shape);
+                    if (!_suspendTagDeselection)
+                        _tagsTreeViewModel.Deselect(shape.Shape as ContentShape);
                 }
 
                 return;
@@ -342,20 +339,13 @@ namespace TallComponents.Samples.ShapesBrowser
             for (var i = 0; i < collection.Count; i++)
             {
                 var shapeVM = collection[i];
-                if (shapeVM == null)
-                    continue;
 
-                if (shapeVM.IsSelected == false) continue;
+                if (shapeVM == null || shapeVM.IsSelected == false || !(shapeVM.Shape is Shape selectedItem) ||
+                    !(selectedItem is ContentShape contentShape)) continue;
 
-                if (!(shapeVM.Shape is Shape selectedItem)) continue;
-                if (selectedItem is ContentShape contentShape)
-                {
-                    var transform = GetTransform(contentShape);
-                    MarkChildShapes(shapeVM, transform);
-                    {
-                        _tagsTreeViewModel.Select(contentShape);
-                    }
-                }
+                var transform = GetTransform(contentShape);
+                MarkChildShapes(shapeVM, transform);
+                _tagsTreeViewModel.Select(contentShape);
             }
         }
 
@@ -436,8 +426,9 @@ namespace TallComponents.Samples.ShapesBrowser
                             ret = true;
                         }
                     }
+                    shape.IsSelected = true;
 
-                    break;
+                        break;
                 }
                 case TextShape text:
                 {
@@ -451,6 +442,7 @@ namespace TallComponents.Samples.ShapesBrowser
                     };
                     _overlay.Children.Add(rectangle);
                     shape.IsMarked = true;
+                    shape.IsSelected = true;
                     shape.OverlayShape = rectangle;
                     ret = true;
                     break;
@@ -526,16 +518,6 @@ namespace TallComponents.Samples.ShapesBrowser
         public void SuspendTagDeselection(bool suspendTagDeselection)
         {
             _suspendTagDeselection = suspendTagDeselection;
-        }
-
-        public void DeselectAll()
-        {
-            var selectedItems = SelectedItems.ToList();
-
-            foreach (var shapeCollectionViewModel in selectedItems)
-            {
-                shapeCollectionViewModel.IsSelected = false;
-            }
         }
     }
 }

@@ -84,6 +84,23 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
+        public void Deselect(Tag shape)
+        {
+            if (Tag == shape)
+            {
+                IsSelected = false;
+                IsExpanded = true;
+            }
+            else
+            {
+                if (null == Children) return;
+                foreach (var child in Children)
+                {
+                    child.Deselect(shape);
+                }
+            }
+        }
+
         public void SetShape(ShapeCollectionViewModel shape)
         {
             ContentShape contentShape = shape.Shape as ContentShape;

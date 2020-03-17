@@ -14,6 +14,7 @@ namespace TallComponents.Samples.ShapesBrowser
         private ObservableCollection<TagViewModel> _selectedItemsViewModel;
         private ShapesTreeViewModel _shapesTreeViewModel;
         private bool _suppressChangeEvent;
+
         private ObservableCollection<TagViewModel> _viewItems;
         public TagsTreeViewModel()
         {
@@ -32,14 +33,6 @@ namespace TallComponents.Samples.ShapesBrowser
             get => _viewItems;
             private set => SetProperty(ref _viewItems, value);
         }
-        public void DeselectAll()
-        {
-            var selectedItems = SelectedItems.ToList();
-            foreach (var item in selectedItems)
-            {
-                item.IsSelected = false;
-            }
-        }
 
         public void Initialize(Document document)
         {
@@ -55,7 +48,13 @@ namespace TallComponents.Samples.ShapesBrowser
             _suppressChangeEvent = true;
             _rootTagViewModel.Select(shape.ParentTag);
             _shapesTreeViewModel.SuspendTagDeselection(false);
-            _suppressChangeEvent = false;
+        }
+
+        public void Deselect(ContentShape shape)
+        {
+            if (null == shape.ParentTag) return;
+            _suppressChangeEvent = true;
+            _rootTagViewModel.Deselect(shape.ParentTag);
         }
 
         public void SetShape(ShapeCollectionViewModel shape)
@@ -73,7 +72,7 @@ namespace TallComponents.Samples.ShapesBrowser
             if (!_suppressChangeEvent)
             {
                 _shapesTreeViewModel.SuspendTagDeselection(true);
-                _shapesTreeViewModel.DeselectAll();
+                _shapesTreeViewModel.Deselect();
                 var collection = sender as ObservableCollection<TagViewModel>;
                 for (var i = 0; i < collection.Count; i++)
                 {
@@ -82,12 +81,11 @@ namespace TallComponents.Samples.ShapesBrowser
                     {
                         _shapesTreeViewModel.SuspendTagDeselection(true);
                         _shapesTreeViewModel.Select(tagVM.Shape.Shape as ContentShape,
-                            MainWindowViewModel.Modifiers.None);
+                            MainWindowViewModel.Modifiers.Ctrl);
                     }
                 }
-
-                _suppressChangeEvent = false;
             }
+            _suppressChangeEvent = false;
         }
     }
 }
