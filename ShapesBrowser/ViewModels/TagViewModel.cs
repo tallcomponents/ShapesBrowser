@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Linq;
 using TallComponents.PDF.Shapes;
 using TallComponents.PDF.Tags;
 
@@ -67,38 +68,20 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
-        public void Select(Tag shape)
+        public bool SetSelected(Tag tag, bool isSelected)
         {
-            if (Tag == shape)
+            if (Tag == tag)
             {
-                IsSelected = true;
-                IsExpanded = true;
-            }
-            else
-            {
-                if (null == Children) return;
-                foreach (var child in Children)
+                if (IsSelected == isSelected)
                 {
-                    child.Select(shape);
+                    return false;
                 }
+                IsSelected = isSelected;
+                IsExpanded = true;
+                return true;
             }
-        }
 
-        public void Deselect(Tag shape)
-        {
-            if (Tag == shape)
-            {
-                IsSelected = false;
-                IsExpanded = true;
-            }
-            else
-            {
-                if (null == Children) return;
-                foreach (var child in Children)
-                {
-                    child.Deselect(shape);
-                }
-            }
+            return null != Children && Children.Any(child => child.SetSelected(tag, isSelected));
         }
 
         public void SetShape(ShapeCollectionViewModel shape)

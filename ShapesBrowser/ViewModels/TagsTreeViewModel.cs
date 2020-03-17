@@ -47,7 +47,10 @@ namespace TallComponents.Samples.ShapesBrowser
         {
             if (null == shape.ParentTag) return;
             _suppressChangeEvent = true;
-            _rootTagViewModel.Select(shape.ParentTag);
+            if (!_rootTagViewModel.SetSelected(shape.ParentTag, true))
+            {
+                _suppressChangeEvent = false;
+            }
             _suppressTagDeselection = false;
         }
 
@@ -56,7 +59,10 @@ namespace TallComponents.Samples.ShapesBrowser
             if (_suppressTagDeselection) return;
             if (null == shape.ParentTag) return;
             _suppressChangeEvent = true;
-            _rootTagViewModel.Deselect(shape.ParentTag);
+            if (!_rootTagViewModel.SetSelected(shape.ParentTag, false))
+            {
+                _suppressChangeEvent = false;
+            }
         }
 
         public void SetShape(ShapeCollectionViewModel shape)

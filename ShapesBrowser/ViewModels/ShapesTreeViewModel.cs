@@ -424,6 +424,7 @@ namespace TallComponents.Samples.ShapesBrowser
                         }
                     }
                     shape.IsSelected = true;
+                    shape.IsExpanded = true;
 
                         break;
                 }
@@ -440,6 +441,7 @@ namespace TallComponents.Samples.ShapesBrowser
                     _overlay.Children.Add(rectangle);
                     shape.IsMarked = true;
                     shape.IsSelected = true;
+                    shape.IsExpanded = true;
                     shape.OverlayShape = rectangle;
                     ret = true;
                     break;
@@ -457,7 +459,8 @@ namespace TallComponents.Samples.ShapesBrowser
                     _overlay.Children.Add(rectangle);
                     shape.IsMarked = true;
                     shape.OverlayShape = rectangle;
-
+                    shape.IsSelected = true;
+                    shape.IsExpanded = true;
                     ret = true;
                     break;
                 }
@@ -503,7 +506,8 @@ namespace TallComponents.Samples.ShapesBrowser
                     _overlay.Children.Add(path);
                     shape.IsMarked = true;
                     shape.OverlayShape = path;
-
+                    shape.IsSelected = true;
+                    shape.IsExpanded = true;
                     ret = true;
                     break;
                 }
