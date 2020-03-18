@@ -234,7 +234,7 @@ namespace TallComponents.Samples.ShapesBrowser
             var shapes = page.CreateShapes();
             var root = new ShapeCollection {shapes};
             AddItem(root, null);
-            _rootShapeCollection = new ShapeCollectionViewModel(root, this);
+            _rootShapeCollection = new ShapeCollectionViewModel(root);
             GenerateShapeTagBinding(_rootShapeCollection);
 
             ViewItems = new ObservableCollection<ShapeCollectionViewModel>(new[] {_rootShapeCollection});

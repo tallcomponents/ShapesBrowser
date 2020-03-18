@@ -39,7 +39,7 @@ namespace TallComponents.Samples.ShapesBrowser
         {
             if (document.LogicalStructure == null) document.LogicalStructure = new LogicalStructure();
             var logicalStructure = document.LogicalStructure;
-            _rootTagViewModel = new TagViewModel(logicalStructure.RootTag, this);
+            _rootTagViewModel = new TagViewModel(logicalStructure.RootTag);
             ViewItems = new ObservableCollection<TagViewModel>(new[] {_rootTagViewModel});
         }
 
