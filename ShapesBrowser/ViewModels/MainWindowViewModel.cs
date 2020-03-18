@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using Microsoft.Win32;
 using TallComponents.PDF.Configuration;
 using TallComponents.PDF.Diagnostics;
 using TallComponents.PDF.Rasterizer;
@@ -26,9 +22,15 @@ namespace TallComponents.Samples.ShapesBrowser
         private pdf.Page _selectedItem;
         private pdf.Document _currentDocument;
         private readonly Loader _loader = new Loader();
-        private Canvas _overlay;
         private readonly IDialogBoxService _dialogBoxService;
-        private ObservableCollection<RectangleViewModel> _items;
+        private ObservableCollection<RectangleViewModel> _canvasItems;
+        private double _pageOrientation;
+        private double _translateX;
+        private double _translateY;
+        private double _scaleX;
+        private double _scaleY;
+        private double _translateOrientationX;
+        private double _translateOrientationY;
 
         public MainWindowViewModel(IDialogBoxService dialogBoxService)
         {
@@ -43,18 +45,55 @@ namespace TallComponents.Samples.ShapesBrowser
             RecentFilesMenuListViewModel.OnFilePathSelected += OnFilePathSelected;
             TagsTreeViewModel.SetShapesTree(ShapesTreeViewModel);
             ShapesTreeViewModel.SetTagsTree(TagsTreeViewModel);
-            Items = new ObservableCollection<RectangleViewModel>
-            {
-                new RectangleViewModel {Top=150.0, Left=100.0, Height=20, Width=20 },
-                new RectangleViewModel {Top=220.0, Left=80.0, Height=40, Width=40 },
-                new RectangleViewModel {Top=100.0, Left= 100.0, Height=50, Width=100}
-            };
+            CanvasItems = new ObservableCollection<RectangleViewModel>();
         }
 
         public ICommand DeleteShapeCommand { get; set; }
         public ICommand DocumentClickCommand { get; set; }
         public ICommand OpenCommand { get; set; }
         public ICommand SaveCommand { get; set; }
+
+        public double PageOrientation
+        {
+            get => _pageOrientation;
+            set => SetProperty(ref _pageOrientation, value);
+        }
+
+        public double TranslateX
+        {
+            get => _translateX;
+            set => SetProperty(ref _translateX, value);
+        }
+
+        public double TranslateY
+        {
+            get => _translateY;
+            set => SetProperty(ref _translateY, value);
+        }
+
+        public double TranslateOrientationX
+        {
+            get => _translateOrientationX;
+            set => SetProperty(ref _translateOrientationX, value);
+        }
+
+        public double TranslateOrientationY
+        {
+            get => _translateOrientationY;
+            set => SetProperty(ref _translateOrientationY, value);
+        }
+
+        public double ScaleX
+        {
+            get => _scaleX;
+            set => SetProperty(ref _scaleX, value);
+        }
+
+        public double ScaleY
+        {
+            get => _scaleY;
+            set => SetProperty(ref _scaleY, value);
+        }
 
         public FixedDocument FixedDocument
         {
@@ -84,10 +123,10 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
-        public ObservableCollection<RectangleViewModel> Items
+        public ObservableCollection<RectangleViewModel> CanvasItems
         {
-            get => _items;
-            set => SetProperty(ref _items, value);
+            get => _canvasItems;
+            set => SetProperty(ref _canvasItems, value);
         }
 
         public ShapesTreeViewModel ShapesTreeViewModel { get; }
@@ -129,35 +168,34 @@ namespace TallComponents.Samples.ShapesBrowser
             var mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick};
             fixedPage.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture));
             
-            _overlay = new Canvas();
-            _overlay.InputBindings.Add(new InputBinding(DeleteShapeCommand, new KeyGesture(Key.Delete)));
-            ShapesTreeViewModel.SetCanvas(_overlay);
-            _overlay.Width = fixedPage.Width;
-            _overlay.Height = fixedPage.Height;
-            _overlay.Background = Brushes.Transparent;
+            ShapesTreeViewModel.SetCanvas(CanvasItems);
 
+            PageOrientation = 0;
+            TranslateX = 0;
+            TranslateY = fixedPage.Height;
+            TranslateY = fixedPage.Height;
+            ScaleX = fixedPage.Width / page.Width;
+            ScaleY = -fixedPage.Height / page.Height;
 
-            var group = new TransformGroup();
-            group.Children.Insert(0, new TranslateTransform(0, fixedPage.Height));
-            group.Children.Insert(0, new ScaleTransform(fixedPage.Width / page.Width, -fixedPage.Height / page.Height));
             switch (page.Orientation)
             {
                 case pdf.Orientation.Rotate90:
-                    group.Children.Insert(0, new RotateTransform(90));
-                    group.Children.Insert(0, new TranslateTransform(0, -page.MediaBox.Height));
+                    PageOrientation = 90;
+                    TranslateOrientationX = 0;
+                    TranslateOrientationY = -page.MediaBox.Height;
                     break;
                 case pdf.Orientation.Rotate180:
-                    group.Children.Insert(0, new RotateTransform(180));
-                    group.Children.Insert(0, new TranslateTransform(-page.MediaBox.Width, -page.MediaBox.Height));
+                    PageOrientation = 180;
+                    TranslateOrientationX = -page.MediaBox.Width;
+                    TranslateOrientationY = -page.MediaBox.Height;
                     break;
                 case pdf.Orientation.Rotate270:
-                    group.Children.Insert(0, new RotateTransform(270));
-                    group.Children.Insert(0, new TranslateTransform(-page.MediaBox.Width, 0));
+                    PageOrientation = 270;
+                    TranslateOrientationX = -page.MediaBox.Width;
+                    TranslateOrientationY = 0;
                     break;
             }
 
-            _overlay.RenderTransform = group;
-            fixedPage.Children.Add(_overlay);
             ShapesTreeViewModel.Deselect();
         }
 
@@ -193,9 +231,9 @@ namespace TallComponents.Samples.ShapesBrowser
 
         private void OnMouseClick()
         {
-            var pos = Mouse.GetPosition(_overlay);
+            /*var pos = Mouse.GetPosition(_overlay);
             Shape shape = ShapesTreeViewModel.FindShape(null, null, pos);
-            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape);
+            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape);*/
         }
 
         private void Open()

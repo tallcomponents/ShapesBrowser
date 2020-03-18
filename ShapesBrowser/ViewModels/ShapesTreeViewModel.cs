@@ -15,7 +15,7 @@ namespace TallComponents.Samples.ShapesBrowser
     public class ShapesTreeViewModel : BaseViewModel
     {
         private ShapeCollectionViewModel _rootShapeCollection;
-        private Canvas _overlay;
+        private ObservableCollection<RectangleViewModel> _overlay;
         private ShapeCollectionViewModel _selectedItem;
         private readonly List<ShapeCollection> _shapeCollections = new List<ShapeCollection>();
         private TagsTreeViewModel _tagsTreeViewModel;
@@ -204,7 +204,7 @@ namespace TallComponents.Samples.ShapesBrowser
         {
             if (shapeVM.IsSelected == false) return;
             _selectedItem = shapeVM;
-            _overlay.Children.Clear();
+            _overlay.Clear();
 
             if (!(shapeVM.Shape is Shape selectedItem)) return;
             if (selectedItem is ContentShape contentShape)
@@ -215,7 +215,7 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
-        public void SetCanvas(Canvas canvas)
+        public void SetCanvas(ObservableCollection<RectangleViewModel> canvas)
         {
             _overlay = canvas;
         }
@@ -302,8 +302,8 @@ namespace TallComponents.Samples.ShapesBrowser
                         Width = text.MeasuredWidth,
                         Height = text.MeasuredHeight
                     };
-                    _overlay.Children.Add(rectangle);
-                    break;
+                        _overlay.Add(new RectangleViewModel { RenderTransform = transform, Height = text.MeasuredHeight, Width = text.MeasuredWidth });
+                        break;
                 }
                 case ImageShape image:
                 {
@@ -315,8 +315,9 @@ namespace TallComponents.Samples.ShapesBrowser
                         Width = image.Width,
                         Height = image.Height
                     };
-                    _overlay.Children.Add(rectangle);
-                    break;
+                        _overlay.Add(new RectangleViewModel { RenderTransform = transform, Height = image.Height, Width = image.Width });
+
+                        break;
                 }
                 case FreeHandShape freehand:
                 {
@@ -357,7 +358,7 @@ namespace TallComponents.Samples.ShapesBrowser
                     path.Stroke = new SolidColorBrush(Colors.Green);
                     path.StrokeThickness = 1;
                     path.RenderTransform = transform;
-                    _overlay.Children.Add(path);
+                    //_overlay.Children.Add(path);
                     break;
                 }
             }

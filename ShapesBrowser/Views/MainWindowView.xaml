@@ -145,10 +145,19 @@
             <src:DocumentViewerEx Grid.Column="4" Document="{Binding FixedDocument}" AttachToPage="{Binding ElementName=test}">
             </src:DocumentViewerEx >
 
-            <ItemsControl Width="100" Height="100" Name="test" Grid.Column="4" ItemsSource="{Binding Items}" >
+            <ItemsControl Width="100" Height="100" Name="test" Grid.Column="4" ItemsSource="{Binding CanvasItems}" >
+                <ItemsControl.RenderTransform>
+                    <TransformGroup>
+                        <TranslateTransform X="{Binding TranslateOrientationX}" Y="{Binding TranslateOrientationY}" />
+                        <RotateTransform Angle="{Binding PageOrientation}" />
+                        <ScaleTransform ScaleX="{Binding ScaleX}" ScaleY="{Binding ScaleY}"/>
+                        <TranslateTransform X="{Binding TranslateX}" Y="{Binding TranslateY}" />
+                        <RotateTransform Angle="{Binding PageOrientation}" />
+                    </TransformGroup>
+                </ItemsControl.RenderTransform>
                 <ItemsControl.Resources>
                     <DataTemplate DataType="{x:Type src:RectangleViewModel}">
-                        <Rectangle Stroke="Green" Fill="Red" Width="{Binding Width,Mode=TwoWay}" Height="{Binding Height,Mode=TwoWay}"/>
+                        <Rectangle Stroke="Green" Fill="Red" Width="{Binding Width,Mode=TwoWay}" Height="{Binding Height,Mode=TwoWay}" RenderTransform="{Binding RenderTransform,Mode=TwoWay}"/>
                     </DataTemplate>
                 </ItemsControl.Resources>
 
@@ -168,9 +177,6 @@
                 </ItemsControl.ItemContainerStyle>
 
             </ItemsControl>
-
-
-            <!--<DocumentViewer Grid.Column="4" Name="documentViewer" Cursor="Arrow" ForceCursor="True" Document="{Binding FixedDocument}"/>-->
         </Grid>
     </DockPanel>
 </Window>   
