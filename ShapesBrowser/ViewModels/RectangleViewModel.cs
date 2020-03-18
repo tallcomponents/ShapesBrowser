@@ -1,4 +1,6 @@
-﻿namespace TallComponents.Samples.ShapesBrowser
+﻿using System.Windows.Media;
+
+namespace TallComponents.Samples.ShapesBrowser
 {
     public class RectangleViewModel : BaseViewModel
     {
@@ -13,5 +15,6 @@
         public double Top { get; set; }
         public double Height { get; set; }
         public double Width { get; set; }
+        public Transform RenderTransform { get; set; }
     }
 }

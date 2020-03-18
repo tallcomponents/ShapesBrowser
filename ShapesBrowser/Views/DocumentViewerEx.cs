@@ -16,7 +16,7 @@ namespace TallComponents.Samples.ShapesBrowser
         public static readonly DependencyProperty AttachToPageProperty =
             DependencyProperty.RegisterAttached("AttachToPage", typeof(ItemsControl), typeof(DocumentViewerEx),
                 new PropertyMetadata(default(ItemsControl), OnIsItemSelectedPropertyChanged));
-
+            
         private static void OnIsItemSelectedPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             Console.WriteLine("Test");
@@ -26,9 +26,12 @@ namespace TallComponents.Samples.ShapesBrowser
         {
             base.OnDocumentChanged();
             var fixedPage = (Document as FixedDocument)?.Pages[0].Child;
-
+            var dc = AttachToPage.DataContext;
+            AttachToPage.Width = fixedPage.Width ;
+            AttachToPage.Height = fixedPage.Height;
             RemoveElementFromItsParent(AttachToPage);
-            fixedPage?.Children.Add(AttachToPage);
+            fixedPage.Children.Add(AttachToPage);
+            AttachToPage.DataContext = dc;
         }
 
         private void RemoveElementFromItsParent(FrameworkElement el)
