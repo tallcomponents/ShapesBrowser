@@ -9,15 +9,13 @@ namespace TallComponents.Samples.ShapesBrowser
     {
         private bool _isExpanded;
         private bool _isSelected;
-        private readonly TagsTreeViewModel _tagsTreeViewModel;
 
-        public TagViewModel(Tag tag, TagsTreeViewModel shapesTreeViewModel) : this(tag, null, shapesTreeViewModel)
+        public TagViewModel(Tag tag) : this(tag, null)
         {
         }
 
-        private TagViewModel(Tag tag, TagViewModel parent, TagsTreeViewModel shapesTreeViewModel)
+        private TagViewModel(Tag tag, TagViewModel parent)
         {
-            _tagsTreeViewModel = shapesTreeViewModel;
             Tag = tag;
             Parent = parent;
             Children = new ObservableCollection<TagViewModel>();
@@ -25,7 +23,7 @@ namespace TallComponents.Samples.ShapesBrowser
             {
                 if (child is Tag childTag)
                 {
-                    Children.Add(new TagViewModel(childTag, this, shapesTreeViewModel));
+                    Children.Add(new TagViewModel(childTag, this));
                 }
             }
         }

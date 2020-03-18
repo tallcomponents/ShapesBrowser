@@ -13,15 +13,12 @@ namespace TallComponents.Samples.ShapesBrowser
         private bool _isExpanded;
         private bool _isSelected;
 
-        private readonly ShapesTreeViewModel _shapesTreeViewModel;
-
-        public ShapeCollectionViewModel(Shape shape, ShapesTreeViewModel shapesTreeViewModel) : this(shape, null, shapesTreeViewModel)
+        public ShapeCollectionViewModel(Shape shape) : this(shape, null)
         {
         }
 
-        private ShapeCollectionViewModel(Shape shape, ShapeCollectionViewModel parent, ShapesTreeViewModel shapesTreeViewModel)
+        private ShapeCollectionViewModel(Shape shape, ShapeCollectionViewModel parent)
         {
-            this._shapesTreeViewModel = shapesTreeViewModel;
             Shape = shape;
             Parent = parent;
 
@@ -31,7 +28,7 @@ namespace TallComponents.Samples.ShapesBrowser
             }
 
             Children = new ObservableCollection<ShapeCollectionViewModel>(
-                (from child in sc select new ShapeCollectionViewModel(child, this, shapesTreeViewModel)).ToList());
+                (from child in sc select new ShapeCollectionViewModel(child, this)).ToList());
         }
 
         public ObservableCollection<ShapeCollectionViewModel> Children { get; set; }
