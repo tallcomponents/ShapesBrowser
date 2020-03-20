@@ -157,7 +157,12 @@
                 </ItemsControl.RenderTransform>
                 <ItemsControl.Resources>
                     <DataTemplate DataType="{x:Type src:RectangleViewModel}">
-                        <Rectangle Stroke="Green" Fill="Red" Width="{Binding Width,Mode=TwoWay}" Height="{Binding Height,Mode=TwoWay}" RenderTransform="{Binding RenderTransform,Mode=TwoWay}"/>
+                        <Rectangle Stroke="Green" Fill="Red" Width="{Binding Width,Mode=TwoWay}" Height="{Binding Height,Mode=TwoWay}"  >
+                            <Rectangle.RenderTransform>
+                                <MatrixTransform Matrix="{Binding MatrixTransform}">
+                                </MatrixTransform>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
                     </DataTemplate>
                 </ItemsControl.Resources>
 
