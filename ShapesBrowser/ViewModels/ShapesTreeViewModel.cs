@@ -8,8 +8,6 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using TallComponents.PDF;
 using TallComponents.PDF.Shapes;
-using Canvas = System.Windows.Controls.Canvas;
-using Rectangle = System.Windows.Shapes.Rectangle;
 using Shape = TallComponents.PDF.Shapes.Shape;
 
 namespace TallComponents.Samples.ShapesBrowser
@@ -129,98 +127,94 @@ namespace TallComponents.Samples.ShapesBrowser
             set => SetProperty(ref _selectedItemsViewModel, value);
         }
 
-        public ContentShape FindShape(Shape shape, TransformGroup parentTransform, Point position)
+        public ContentShape FindShape(Shape shape, Matrix parentTransform, Point position)
         {
             ContentShape shapeFound = null;
             if (_shapeCollections.Count == 0) return null;
             if (null == shape || null == parentTransform)
             {
                 shape = _shapeCollections[0];
-                parentTransform = new TransformGroup();
-                AddShapeToTransform(shape as ShapeCollection, parentTransform);
+                parentTransform = ComputeAbsoluteMatrix(shape as ShapeCollection, parentTransform);
             }
 
             switch (shape)
             {
                 case ShapeCollection shapeCollection:
-                {
-                    var transform = CreateTransformGroup(parentTransform, shapeCollection);
-                    foreach (var child in shapeCollection)
                     {
-                        shapeFound = FindShape(child, transform, position);
-                        if (null != shapeFound)
+                        var transform = ComputeAbsoluteMatrix(shapeCollection, parentTransform);
+                        foreach (var child in shapeCollection)
                         {
-                            if (null == shapeFound.ParentTag && null != shapeCollection.ParentTag)
-                                shapeFound = shapeCollection;
-                            return shapeFound;
+                            shapeFound = FindShape(child, transform, position);
+                            if (null != shapeFound)
+                            {
+                                if (null == shapeFound.ParentTag && null != shapeCollection.ParentTag)
+                                    shapeFound = shapeCollection;
+                                return shapeFound;
+                            }
                         }
-                    }
 
-                    break;
-                }
+                        break;
+                    }
                 case TextShape text:
-                {
-                    var transform = CreateTransformGroup(parentTransform, text);
-                    var rect = transform.TransformBounds(new Rect(new Size(text.MeasuredWidth, text.MeasuredHeight)));
-                    if (rect.Contains(position)) shapeFound = text;
-                    break;
-                }
-                case ImageShape image:
-                {
-                    var transform = CreateTransformGroup(parentTransform, image);
-                    var rect = transform.TransformBounds(new Rect(new Size(image.Width, image.Height)));
-                    if (rect.Contains(position)) shapeFound = image;
-                    break;
-                }
-                case FreeHandShape freehand:
-                {
-                    var transform = CreateTransformGroup(parentTransform, freehand);
-                    foreach (var freehandPath in freehand.Paths)
-                    {
-                        var geometry = new PathGeometry();
-                        var figure = new PathFigure {IsClosed = freehandPath.Closed};
-                        foreach (var segment in freehandPath.Segments)
-                        {
-                            if (segment is FreeHandStartSegment)
-                            {
-                                var start = segment as FreeHandStartSegment;
-                                figure.StartPoint = new Point(start.X, start.Y);
-                            }
-                            else if (segment is FreeHandLineSegment)
-                            {
-                                var line = segment as FreeHandLineSegment;
-                                figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
-                            }
-                            else if (segment is FreeHandBezierSegment)
-                            {
-                                var bezier = segment as FreeHandBezierSegment;
-                                figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
-                                    new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
-                            }
-                        }
 
-                        geometry.Figures.Add(figure);
-                        var bounds = transform.TransformBounds(geometry.Bounds);
-                        if (bounds.Contains(position))
-                        {
-                            shapeFound = freehand;
-                            break;
-                        }
+                    {
+                        var transform = ComputeAbsoluteMatrix(text, parentTransform);
+                        var rect = new Rect(new Size(text.MeasuredWidth, text.MeasuredHeight));
+                        rect.Transform(transform);
+                        if (rect.Contains(position)) shapeFound = text;
+                        break;
+                    }
+                case ImageShape image:
+                    {
+                        var transform = ComputeAbsoluteMatrix(image, parentTransform);
+                        var rect = new Rect(new Size(image.Width, image.Height));
+                        rect.Transform(transform);
+                        if (rect.Contains(position)) shapeFound = image;
+                        break;
                     }
 
-                    break;
-                }
+                case FreeHandShape freehand:
+                    {
+                        var transform = ComputeAbsoluteMatrix(freehand, parentTransform);
+                        foreach (var freehandPath in freehand.Paths)
+                        {
+                            var geometry = new PathGeometry();
+                            var figure = new PathFigure { IsClosed = freehandPath.Closed };
+                            foreach (var segment in freehandPath.Segments)
+                            {
+                                if (segment is FreeHandStartSegment)
+                                {
+                                    var start = segment as FreeHandStartSegment;
+                                    figure.StartPoint = new Point(start.X, start.Y);
+                                }
+                                else if (segment is FreeHandLineSegment)
+                                {
+                                    var line = segment as FreeHandLineSegment;
+                                    figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
+                                }
+                                else if (segment is FreeHandBezierSegment)
+                                {
+                                    var bezier = segment as FreeHandBezierSegment;
+                                    figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
+                                        new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
+                                }
+                            }
+
+                            geometry.Figures.Add(figure);
+                            var bounds = geometry.Bounds;
+                            bounds.Transform(transform);
+                            if (bounds.Contains(position))
+                            {
+                                shapeFound = freehand;
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
             }
 
             return shapeFound;
-        }
-
-        private TransformGroup CreateTransformGroup(TransformGroup parentTransform, ContentShape contentShape)
-        {
-            var transform = new TransformGroup();
-            transform.Children.Add(parentTransform);
-            AddShapeToTransform(contentShape, transform);
-            return transform;
         }
 
         public int GetNextShapeCollectionID()
@@ -340,8 +334,10 @@ namespace TallComponents.Samples.ShapesBrowser
                 if (shapeVM == null || shapeVM.IsSelected == false || !(shapeVM.Shape is Shape selectedItem) ||
                     !(selectedItem is ContentShape contentShape)) continue;
 
-                var transform = GetTransform(contentShape);
-                MarkChildShapes(shapeVM, transform);
+
+                var matrix = ComputeAbsoluteMatrix(contentShape);
+                MarkChildShapes(shapeVM, matrix);
+
                 _tagsTreeViewModel.Select(contentShape);
             }
         }
@@ -386,83 +382,70 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
-        private void AddShapeToTransform(ContentShape shape, TransformGroup parentTransform)
+        private Matrix ComputeAbsoluteMatrix(ContentShape shape, Matrix parentMatrix)
         {
-            if (null == shape || null == parentTransform) return;
+            if (null == shape) return Matrix.Identity;
             var tr = shape.Transform.AsMatrixTransform;
-            var matrix = new MatrixTransform(tr.ScaleX, tr.ShearX, tr.ShearY, tr.ScaleY, tr.OffsetX, tr.OffsetY);
-            parentTransform.Children.Add(matrix);
+            var matrix = new Matrix(tr.ScaleX, tr.ShearY, tr.ShearX, tr.ScaleY, tr.OffsetX, tr.OffsetY);
+            return Matrix.Multiply(matrix, parentMatrix);
         }
 
-        private TransformGroup GetTransform(Shape shape)
+        private Matrix ComputeAbsoluteMatrix(Shape shape)
         {
-            var transform = new TransformGroup();
+            var transform = new Matrix();
             var parent = GetParent(shape);
             while (null != parent)
             {
-                AddShapeToTransform(parent, transform);
+                ComputeAbsoluteMatrix(parent, transform);
                 parent = GetParent(parent);
             }
 
             return transform;
         }
 
-        private bool MarkChildShapes(ShapeCollectionViewModel shape, TransformGroup parentTransform)
+
+        private bool MarkChildShapes(ShapeCollectionViewModel shape, Matrix parentMatrix)
         {
-            if (null == shape || null == parentTransform || shape.IsMarked) return false;
+            if (null == shape || shape.IsMarked) return false;
             bool ret = false;
             switch (shape.Shape)
             {
                 case ShapeCollection shapeCollection:
                 {
-                    var transform = CreateTransformGroup(parentTransform, shapeCollection);
-                    foreach (var child in shape.Children)
-                    {
-                        if (MarkChildShapes(child, transform))
+                    var transform = ComputeAbsoluteMatrix( shapeCollection, parentMatrix);
+                        foreach (var child in shape.Children)
                         {
-                            ret = true;
+                            if (MarkChildShapes(child, transform))
+                            {
+                                ret = true;
+                            }
                         }
-                    }
-                    shape.IsSelected = true;
-                    break;
+                        shape.IsSelected = true;
+                        break;
                 }
 
                 case TextShape text:
                 {
-                    var transform = CreateTransformGroup(parentTransform, text);
-                    var rectangle = new Rectangle
-                    {
-                        RenderTransform = transform,
-                        Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
-                        Width = text.MeasuredWidth,
-                        Height = text.MeasuredHeight
-                    };
 
+                    var transform = ComputeAbsoluteMatrix(text, parentMatrix);
+                    _overlay.Add(new RectangleViewModel { MatrixTransform = transform, Height = text.MeasuredHeight, Width = text.MeasuredWidth });
                     shape.IsMarked = true;
                     shape.IsSelected = true;
-                    shape.OverlayShape = rectangle;
+                    //shape.OverlayShape = rectangle;
                     ret = true;
-
-
-                        _overlay.Add(new RectangleViewModel { RenderTransform = transform, Height = text.MeasuredHeight, Width = text.MeasuredWidth });
-                        break;
+                    break;
                 }
                 case ImageShape image:
                 {
-                    var transform = CreateTransformGroup(parentTransform, image);
-                    var rectangle = new Rectangle
-                    {
-                        RenderTransform = transform,
-                        Fill = new SolidColorBrush(Color.FromArgb(64, 255, 0, 0)),
-                        Width = image.Width,
-                        Height = image.Height
-                    };
+
+                    var transform = ComputeAbsoluteMatrix(image, parentMatrix);
+                    _overlay.Add(new RectangleViewModel { MatrixTransform = transform, Height = image.Height, Width = image.Width });
+
 
                     shape.IsMarked = true;
-                    shape.OverlayShape = rectangle;
+                    //shape.OverlayShape = rectangle;
                     shape.IsSelected = true;
                     ret = true;
-                    _overlay.Add(new RectangleViewModel { RenderTransform = transform, Height = image.Height, Width = image.Width });
                         break;
                 }
                 case ClipShape _:
@@ -470,54 +453,54 @@ namespace TallComponents.Samples.ShapesBrowser
                 {
                     var clipShape = shape.Shape as ClipShape;
                     var freeHandShape = shape.Shape as FreeHandShape;
-                    var contentShape = (ContentShape) clipShape ?? freeHandShape;
+                    var contentShape = (ContentShape)clipShape ?? freeHandShape;
                     var paths = clipShape != null ? clipShape.Paths : freeHandShape.Paths;
 
-                    var transform = CreateTransformGroup(parentTransform, contentShape);
-                    var path = new Path();
-                    var geometry = new PathGeometry();
-                    path.Data = geometry;
-                    foreach (var freehandPath in paths)
-                    {
-                        var figure = new PathFigure { IsClosed = freehandPath.Closed };
-                        foreach (var segment in freehandPath.Segments)
+                        var transform = ComputeAbsoluteMatrix(contentShape, parentMatrix);
+                        var path = new Path();
+                        var geometry = new PathGeometry();
+                        path.Data = geometry;
+                        foreach (var freehandPath in paths)
                         {
-                            switch (segment)
+                            var figure = new PathFigure { IsClosed = freehandPath.Closed };
+                            foreach (var segment in freehandPath.Segments)
                             {
-                                case FreeHandStartSegment start:
-                                    {
-                                        figure.StartPoint = new Point(start.X, start.Y);
-                                        break;
-                                    }
-                                case FreeHandLineSegment line:
-                                    {
-                                        figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
-                                        break;
-                                    }
-                                case FreeHandBezierSegment bezier:
-                                    {
-                                        figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
-                                            new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
-                                        break;
-                                    }
+
+                                switch (segment)
+                                {
+                                    case FreeHandStartSegment start:
+                                        {
+                                            figure.StartPoint = new Point(start.X, start.Y);
+                                            break;
+                                        }
+                                    case FreeHandLineSegment line:
+                                        {
+                                            figure.Segments.Add(new LineSegment(new Point(line.X1, line.Y1), true));
+                                            break;
+                                        }
+                                    case FreeHandBezierSegment bezier:
+                                        {
+                                            figure.Segments.Add(new BezierSegment(new Point(bezier.X1, bezier.Y1),
+                                                new Point(bezier.X2, bezier.Y2), new Point(bezier.X3, bezier.Y3), true));
+                                            break;
+                                        }
+                                }
                             }
+
+                            geometry.Figures.Add(figure);
                         }
 
-                        geometry.Figures.Add(figure);
+                        path.Fill = new SolidColorBrush(Colors.Red);
+                        path.Stroke = new SolidColorBrush(Colors.Green);
+                        path.StrokeThickness = 1;
+                        //path.RenderTransform = transform;
+                        //_overlay.Children.Add(path);
+                        shape.IsMarked = true;
+                        shape.OverlayShape = path;
+                        shape.IsSelected = true;
+                        ret = true;
+                        break;
                     }
-
-                    path.Fill = new SolidColorBrush(Color.FromArgb(44, 255, 0, 0));
-                    path.Stroke = new SolidColorBrush(Colors.Green);
-                    path.StrokeThickness = 1;
-                    path.RenderTransform = transform;
-
-                    //_overlay.Children.Add(path);
-                    shape.IsMarked = true;
-                    shape.OverlayShape = path;
-                    shape.IsSelected = true;
-                    ret = true;
-                    break;
-                }
             }
 
             return ret;

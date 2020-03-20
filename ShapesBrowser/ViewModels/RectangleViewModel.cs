@@ -16,5 +16,6 @@ namespace TallComponents.Samples.ShapesBrowser
         public double Height { get; set; }
         public double Width { get; set; }
         public Transform RenderTransform { get; set; }
+        public Matrix MatrixTransform { get; set; }
     }
 }
