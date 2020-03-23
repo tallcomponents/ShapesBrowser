@@ -2,26 +2,21 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
     internal class DocumentViewerEx : DocumentViewer
     {
-        public ItemsControl AttachToPage
+        public FrameworkElement AttachToPage
         {
-            get => (ItemsControl) GetValue(AttachToPageProperty);
+            get => (FrameworkElement) GetValue(AttachToPageProperty);
             set => SetValue(AttachToPageProperty, value);
         }
 
         public static readonly DependencyProperty AttachToPageProperty =
-            DependencyProperty.RegisterAttached("AttachToPage", typeof(ItemsControl), typeof(DocumentViewerEx),
-                new PropertyMetadata(default(ItemsControl), OnIsItemSelectedPropertyChanged));
-            
-        private static void OnIsItemSelectedPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            Console.WriteLine("Test");
-        }
-
+            DependencyProperty.RegisterAttached("AttachToPage", typeof(FrameworkElement), typeof(DocumentViewerEx));
+        
         protected override void OnDocumentChanged()
         {
             base.OnDocumentChanged();
@@ -29,12 +24,13 @@ namespace TallComponents.Samples.ShapesBrowser
             var dc = AttachToPage.DataContext;
             AttachToPage.Width = fixedPage.Width ;
             AttachToPage.Height = fixedPage.Height;
+
             RemoveElementFromItsParent(AttachToPage);
             fixedPage.Children.Add(AttachToPage);
             AttachToPage.DataContext = dc;
         }
 
-        private void RemoveElementFromItsParent(FrameworkElement el)
+        private static void RemoveElementFromItsParent(FrameworkElement el)
         {
             switch (el.Parent)
             {
