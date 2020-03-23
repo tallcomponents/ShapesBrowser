@@ -127,7 +127,7 @@ namespace TallComponents.Samples.ShapesBrowser
             set => SetProperty(ref _selectedItemsViewModel, value);
         }
 
-        public ContentShape FindShape(Shape shape, Matrix parentTransform, Point position)
+        public ContentShape FindShape(Shape shape, Point position, Matrix parentTransform = default)
         {
             ContentShape shapeFound = null;
             if (_shapeCollections.Count == 0) return null;
@@ -144,7 +144,7 @@ namespace TallComponents.Samples.ShapesBrowser
                         var transform = ComputeAbsoluteMatrix(shapeCollection, parentTransform);
                         foreach (var child in shapeCollection)
                         {
-                            shapeFound = FindShape(child, transform, position);
+                            shapeFound = FindShape(child, position, transform);
                             if (null != shapeFound)
                             {
                                 if (null == shapeFound.ParentTag && null != shapeCollection.ParentTag)

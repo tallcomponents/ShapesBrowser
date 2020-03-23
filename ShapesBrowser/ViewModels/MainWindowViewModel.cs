@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -8,7 +9,6 @@ using TallComponents.PDF.Diagnostics;
 using TallComponents.PDF.Rasterizer;
 using TallComponents.PDF.Shapes;
 using TallComponents.Samples.ShapesBrowser.Other;
-using Canvas = System.Windows.Controls.Canvas;
 using pdf = TallComponents.PDF;
 
 namespace TallComponents.Samples.ShapesBrowser
@@ -16,7 +16,6 @@ namespace TallComponents.Samples.ShapesBrowser
     internal class MainWindowViewModel : BaseViewModel
     {
         private FixedDocument _fixedDocument;
-        private FixedPage _fixedPage;
         private pdf.PageCollection _itemSource;
         private int _selectedIndex;
         private pdf.Page _selectedItem;
@@ -31,14 +30,17 @@ namespace TallComponents.Samples.ShapesBrowser
         private double _scaleY;
         private double _translateOrientationX;
         private double _translateOrientationY;
+        private Point _mousePosition;
 
         public MainWindowViewModel(IDialogBoxService dialogBoxService)
         {
             _dialogBoxService = dialogBoxService;
             SaveCommand = new RelayCommand(Save);
             OpenCommand = new RelayCommand(Open);
-            DocumentClickCommand = new RelayCommand<Modifiers>(OnMouseClick);
+
+            DocumentClickCommand = new PositioningCommand(OnMouseClick);
             DeleteShapeCommand = new RelayCommand(OnDelete);
+
             TagsTreeViewModel = new TagsTreeViewModel();
             ShapesTreeViewModel = new ShapesTreeViewModel();
             RecentFilesMenuListViewModel = new RecentFilesMenuListViewModel(4);
@@ -247,18 +249,10 @@ namespace TallComponents.Samples.ShapesBrowser
             SelectedIndex = prevIndex;
             DrawPage(prevIndex);
         }
-
-        private void OnMouseClick(Modifiers modifier)
+        private void OnMouseClick(Point position) // add Modifiers modifier parameter
         {
-            MouseClick(modifier);
-        }
-
-        private void MouseClick(Modifiers modified)
-        {
-            /*var pos = Mouse.GetPosition(_overlay);
-            Shape shape = ShapesTreeViewModel.FindShape(null, null, pos);
-
-            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape, modified);*/
+            Shape shape = ShapesTreeViewModel.FindShape(null, position);
+            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape, Modifiers.None); //, modified);
         }
 
         private void Open()

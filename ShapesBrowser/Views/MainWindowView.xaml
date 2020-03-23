@@ -141,11 +141,14 @@
                 Width="3">
             </GridSplitter>
 
-            <src:DocumentViewerEx Grid.Column="4" Document="{Binding FixedDocument}" AttachToPage="{Binding ElementName=test}">
+            <src:DocumentViewerEx Grid.Column="4" Document="{Binding FixedDocument}" AttachToPage="{Binding ElementName=CanvasWrapper}">
             </src:DocumentViewerEx >
 
-            <ItemsControl Width="100" Height="100" Name="test" Grid.Column="4" ItemsSource="{Binding CanvasItems}" >
-                <ItemsControl.RenderTransform>
+                <ItemsControl Name="CanvasWrapper" Grid.Column="4" ItemsSource="{Binding CanvasItems}">
+                    <ItemsControl.InputBindings>
+                        <MouseBinding Gesture="LeftClick" Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                    </ItemsControl.InputBindings>
+                    <ItemsControl.RenderTransform>
                     <TransformGroup>
                         <TranslateTransform X="{Binding TranslateOrientationX}" Y="{Binding TranslateOrientationY}" />
                         <RotateTransform Angle="{Binding PageOrientation}" />
@@ -156,7 +159,7 @@
                 </ItemsControl.RenderTransform>
                 <ItemsControl.Resources>
                     <DataTemplate DataType="{x:Type src:RectangleViewModel}">
-                        <Rectangle Stroke="Green" Fill="Red" Width="{Binding Width,Mode=TwoWay}" Height="{Binding Height,Mode=TwoWay}"  >
+                        <Rectangle Fill="Red" Opacity="0.5" Width="{Binding Width,Mode=TwoWay}" Height="{Binding Height,Mode=TwoWay}"  >
                             <Rectangle.RenderTransform>
                                 <MatrixTransform Matrix="{Binding MatrixTransform}">
                                 </MatrixTransform>
@@ -167,8 +170,7 @@
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <Canvas x:Name="TestCanvas" Width="Auto" Height="Auto" Background="Aquamarine" ZIndex="50
-                    " Opacity="0.5">
+                        <Canvas x:Name="TestCanvas" Width="Auto" Height="Auto" Background="Transparent" ZIndex="50">
                         </Canvas>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
