@@ -91,7 +91,6 @@
     <Compile Include="ViewModels\RecentFilesMenuListViewModel.cs" />
     <Compile Include="Other\Loader.cs" />
     <Compile Include="Other\MultipleSelectionTreeView.cs" />
-    <Compile Include="Views\MouseTrackerDecorator.cs" />
     <Page Include="Views\MainWindowView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

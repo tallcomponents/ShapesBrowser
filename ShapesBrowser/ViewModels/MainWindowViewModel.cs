@@ -30,7 +30,6 @@ namespace TallComponents.Samples.ShapesBrowser
         private double _scaleY;
         private double _translateOrientationX;
         private double _translateOrientationY;
-        private Point _mousePosition;
 
         public MainWindowViewModel(IDialogBoxService dialogBoxService)
         {
