@@ -89,7 +89,7 @@ namespace TallComponents.Samples.ShapesBrowser
                     {
                         _suppressTagDeselection = true;
                         _shapesTreeViewModel.Select(tagVM.Shape.Shape as ContentShape,
-                            MainWindowViewModel.Modifiers.Ctrl);
+                            Modifiers.Ctrl);
                     }
                 }
             }

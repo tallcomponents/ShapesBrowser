@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using TallComponents.PDF.Configuration;
 using TallComponents.PDF.Diagnostics;
 using TallComponents.PDF.Rasterizer;
@@ -13,6 +12,14 @@ using pdf = TallComponents.PDF;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
+    public enum Modifiers
+    {
+        None,
+        Shift,
+        Ctrl,
+        CtrlShift
+    }
+
     internal class MainWindowViewModel : BaseViewModel
     {
         private FixedDocument _fixedDocument;
@@ -47,14 +54,6 @@ namespace TallComponents.Samples.ShapesBrowser
             TagsTreeViewModel.SetShapesTree(ShapesTreeViewModel);
             ShapesTreeViewModel.SetTagsTree(TagsTreeViewModel);
             CanvasItems = new ObservableCollection<RectangleViewModel>();
-        }
-
-        public enum Modifiers
-        {
-            None,
-            Shift,
-            Ctrl,
-            CtrlShift
         }
 
         public ICommand DeleteShapeCommand { get; set; }
@@ -174,22 +173,6 @@ namespace TallComponents.Samples.ShapesBrowser
             var fixedDocument = _currentDocument.ConvertToWpf(renderSettings, convertOptions, index, index, summary);
             FixedDocument = fixedDocument;
             var fixedPage = fixedDocument.Pages[0].Child;
-
-            //_overlay.InputBindings.Add(new InputBinding(DeleteShapeCommand, new KeyGesture(Key.Delete)));
-            //var mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick};
-            //_overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture)
-            //    {CommandParameter = Modifiers.None});
-            //mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick, Modifiers = ModifierKeys.Control};
-            //_overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture)
-            //    {CommandParameter = Modifiers.Ctrl});
-            //mouseGesture = new MouseGesture {MouseAction = MouseAction.LeftClick, Modifiers = ModifierKeys.Shift};
-            //_overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture)
-            //    {CommandParameter = Modifiers.Shift});
-            //mouseGesture = new MouseGesture
-            //    {MouseAction = MouseAction.LeftClick, Modifiers = ModifierKeys.Shift | ModifierKeys.Control};
-            //_overlay.InputBindings.Add(new InputBinding(DocumentClickCommand, mouseGesture)
-            //    {CommandParameter = Modifiers.CtrlShift});
-            
             ShapesTreeViewModel.SetCanvas(CanvasItems);
 
             PageOrientation = 0;
@@ -248,10 +231,10 @@ namespace TallComponents.Samples.ShapesBrowser
             SelectedIndex = prevIndex;
             DrawPage(prevIndex);
         }
-        private void OnMouseClick(Point position) // add Modifiers modifier parameter
+        private void OnMouseClick(Point position, Modifiers modified)
         {
             Shape shape = ShapesTreeViewModel.FindShape(null, position);
-            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape, Modifiers.None); //, modified);
+            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape, modified);
         }
 
         private void Open()

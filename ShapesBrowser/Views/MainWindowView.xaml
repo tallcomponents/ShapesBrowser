@@ -143,10 +143,13 @@
 
             <src:DocumentViewerEx Grid.Column="4" Document="{Binding FixedDocument}" AttachToPage="{Binding ElementName=CanvasWrapper}">
             </src:DocumentViewerEx >
-
-                <ItemsControl Name="CanvasWrapper" Grid.Column="4" ItemsSource="{Binding CanvasItems}">
+            <ItemsControl Name="CanvasWrapper" Grid.Column="4" ItemsSource="{Binding CanvasItems}">
                     <ItemsControl.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                        <MouseBinding Gesture="CTRL+LeftClick"  Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                        <MouseBinding Gesture="SHIFT+LeftClick" Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                        <MouseBinding Gesture="CTRL+SHIFT+LeftClick" Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                        <KeyBinding Key="Delete" Command="{Binding Path=DeleteShapeCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
                     </ItemsControl.InputBindings>
                     <ItemsControl.RenderTransform>
                     <TransformGroup>

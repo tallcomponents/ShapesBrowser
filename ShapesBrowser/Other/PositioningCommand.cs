@@ -6,8 +6,8 @@ namespace TallComponents.Samples.ShapesBrowser
 {
     public class PositioningCommand : ICommand
     {
-        private readonly Action<Point> _action;
-        public PositioningCommand(Action<Point> action)
+        private readonly Action<Point, Modifiers> _action;
+        public PositioningCommand(Action<Point, Modifiers> action)
         {
             _action = action;
         }
@@ -15,7 +15,23 @@ namespace TallComponents.Samples.ShapesBrowser
         public void Execute(object parameter)
         {
             var mousePos = Mouse.GetPosition((IInputElement)parameter);
-            _action(mousePos);
+            Modifiers modifiers = Modifiers.None;
+            switch (Keyboard.Modifiers)
+            {
+                case ModifierKeys.Control | ModifierKeys.Shift:
+                    modifiers = Modifiers.CtrlShift;
+                    break;
+                case ModifierKeys.Control:
+                    modifiers = Modifiers.Ctrl;
+                    break;
+                case ModifierKeys.Shift:
+                    modifiers = Modifiers.Shift;
+                    break;
+                case ModifierKeys.None:
+                    modifiers = Modifiers.None;
+                    break;
+            }
+            _action(mousePos, modifiers);
         }
 
         public bool CanExecute(object parameter) { return true; }

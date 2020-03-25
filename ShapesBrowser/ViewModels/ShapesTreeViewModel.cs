@@ -261,25 +261,25 @@ namespace TallComponents.Samples.ShapesBrowser
             SelectedItems.Clear();
         }
 
-        public void Select(ContentShape shape, MainWindowViewModel.Modifiers modified)
+        public void Select(ContentShape shape, Modifiers modified)
         {
             switch (modified)
             {
-                case MainWindowViewModel.Modifiers.None:
+                case Modifiers.None:
                 {
                     Deselect();
                     _startItem = _rootShapeCollection.Select(shape);
                     break;
                 }
-                case MainWindowViewModel.Modifiers.Ctrl:
+                case Modifiers.Ctrl:
                     _startItem = _rootShapeCollection.Select(shape);
                     break;
-                case MainWindowViewModel.Modifiers.Shift:
-                case MainWindowViewModel.Modifiers.CtrlShift:
+                case Modifiers.Shift:
+                case Modifiers.CtrlShift:
                 {
                     var list = ViewItems[0].ToList();
 
-                    if (modified != MainWindowViewModel.Modifiers.CtrlShift)
+                    if (modified != Modifiers.CtrlShift)
                     {
                         Deselect();
                     }
@@ -440,7 +440,6 @@ namespace TallComponents.Samples.ShapesBrowser
 
                     var transform = ComputeAbsoluteMatrix(image, parentMatrix);
                     _overlay.Add(new RectangleViewModel { MatrixTransform = transform, Height = image.Height, Width = image.Width });
-
 
                     shape.IsMarked = true;
                     //shape.OverlayShape = rectangle;
