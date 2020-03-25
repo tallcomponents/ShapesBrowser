@@ -70,7 +70,7 @@ namespace TallComponents.Samples.ShapesBrowser
             }
         }
 
-        public System.Windows.Shapes.Shape OverlayShape { get; set; }
+        public RectangleViewModel OverlayShape { get; set; }
 
         public List<ShapeCollectionViewModel> ToList()
         {

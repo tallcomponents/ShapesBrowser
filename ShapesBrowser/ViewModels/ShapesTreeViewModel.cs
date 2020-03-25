@@ -100,7 +100,7 @@ namespace TallComponents.Samples.ShapesBrowser
             }
             else
             {
-                //_overlay.Children.Remove(contentShape.OverlayShape);
+                _overlay.Remove(contentShape.OverlayShape);
                 contentShape.IsMarked = false;
                 contentShape.IsSelected = false;
             }
@@ -428,10 +428,12 @@ namespace TallComponents.Samples.ShapesBrowser
                 {
 
                     var transform = ComputeAbsoluteMatrix(text, parentMatrix);
-                    _overlay.Add(new RectangleViewModel { MatrixTransform = transform, Height = text.MeasuredHeight, Width = text.MeasuredWidth });
+                    var rectangle = new RectangleViewModel
+                        {MatrixTransform = transform, Height = text.MeasuredHeight, Width = text.MeasuredWidth};
+                    _overlay.Add(rectangle);
                     shape.IsMarked = true;
                     shape.IsSelected = true;
-                    //shape.OverlayShape = rectangle;
+                    shape.OverlayShape = rectangle;
                     ret = true;
                     break;
                 }
@@ -439,10 +441,13 @@ namespace TallComponents.Samples.ShapesBrowser
                 {
 
                     var transform = ComputeAbsoluteMatrix(image, parentMatrix);
-                    _overlay.Add(new RectangleViewModel { MatrixTransform = transform, Height = image.Height, Width = image.Width });
+                    var rectangle = new RectangleViewModel
+                        {MatrixTransform = transform, Height = image.Height, Width = image.Width};
+                        _overlay.Add(rectangle);
+
 
                     shape.IsMarked = true;
-                    //shape.OverlayShape = rectangle;
+                    shape.OverlayShape = rectangle;
                     shape.IsSelected = true;
                     ret = true;
                         break;
@@ -495,7 +500,7 @@ namespace TallComponents.Samples.ShapesBrowser
                         //path.RenderTransform = transform;
                         //_overlay.Children.Add(path);
                         shape.IsMarked = true;
-                        shape.OverlayShape = path;
+                        //shape.OverlayShape = path;
                         shape.IsSelected = true;
                         ret = true;
                         break;
