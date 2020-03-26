@@ -46,6 +46,7 @@ namespace TallComponents.Samples.ShapesBrowser
 
             DocumentClickCommand = new PositioningCommand(OnMouseClick);
             DeleteShapeCommand = new RelayCommand(OnDelete);
+            KeepShapesCommand = new RelayCommand(OnKeepShapes);
 
             TagsTreeViewModel = new TagsTreeViewModel();
             ShapesTreeViewModel = new ShapesTreeViewModel();
@@ -55,6 +56,8 @@ namespace TallComponents.Samples.ShapesBrowser
             ShapesTreeViewModel.SetTagsTree(TagsTreeViewModel);
             CanvasItems = new ObservableCollection<RectangleViewModel>();
         }
+
+        public ICommand KeepShapesCommand { get; set; }
 
         public ICommand DeleteShapeCommand { get; set; }
         public ICommand DocumentClickCommand { get; set; }
@@ -210,6 +213,21 @@ namespace TallComponents.Samples.ShapesBrowser
             ItemsSource = _currentDocument.Pages;
         }
 
+        private void OnKeepShapes()
+        {
+            var pdfOut = new pdf.Document(); ;
+            var selectedItems = ShapesTreeViewModel.GetSelectedItems();
+            var page = _currentDocument.Pages[SelectedIndex];
+            var newPage = new pdf.Page(page.Width, page.Height);
+
+            foreach (var shapeCollectionViewModel in selectedItems)
+            {
+                newPage.Overlay.Add(shapeCollectionViewModel.Shape);
+            }
+            pdfOut.Pages.Add(newPage);
+            ReloadFile(pdfOut);
+        }
+
         private void OnDelete()
         {
             ShapesTreeViewModel.RemoveSelectedItems();
@@ -220,7 +238,11 @@ namespace TallComponents.Samples.ShapesBrowser
             {
                 pdfOut.Pages.Add(page == selectedPage ? Copy(page, root[0] as ShapeCollection) : Copy(page));
             }
+            ReloadFile(pdfOut);
+        }
 
+        private void ReloadFile(pdf.Document pdfOut)
+        {
             _loader.SaveTempFile(pdfOut);
             _loader.CloseCurrentFile();
             var prevIndex = SelectedIndex;
@@ -231,6 +253,7 @@ namespace TallComponents.Samples.ShapesBrowser
             SelectedIndex = prevIndex;
             DrawPage(prevIndex);
         }
+
         private void OnMouseClick(Point position, Modifiers modified)
         {
             Shape shape = ShapesTreeViewModel.FindShape(null, position);

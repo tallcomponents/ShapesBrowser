@@ -119,6 +119,8 @@ namespace TallComponents.Samples.ShapesBrowser
             {
                 shapeCollectionViewModel.IsSelected = false;
             }
+            SelectedItems.Clear();
+            _overlay.Clear();
         }
 
         public ObservableCollection<ShapeCollectionViewModel> SelectedItems
@@ -257,8 +259,8 @@ namespace TallComponents.Samples.ShapesBrowser
             {
                 shape.Shape.Parent?.Remove(shape.Shape);
             }
-
             SelectedItems.Clear();
+            _overlay.Clear();
         }
 
         public void Select(ContentShape shape, Modifiers modified)
@@ -508,6 +510,11 @@ namespace TallComponents.Samples.ShapesBrowser
             }
 
             return ret;
+        }
+
+        public IList<ShapeCollectionViewModel> GetSelectedItems()
+        {
+            return _selectedItemsViewModel;
         }
     }
 }
