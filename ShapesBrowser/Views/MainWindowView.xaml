@@ -146,10 +146,10 @@
             </src:DocumentViewerEx >
             <ItemsControl Name="CanvasWrapper" Grid.Column="4" ItemsSource="{Binding CanvasItems}">
                     <ItemsControl.InputBindings>
-                        <MouseBinding Gesture="LeftClick" Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
-                        <MouseBinding Gesture="CTRL+LeftClick"  Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
-                        <MouseBinding Gesture="SHIFT+LeftClick" Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
-                        <MouseBinding Gesture="CTRL+SHIFT+LeftClick" Command="{Binding Path=DocumentClickCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                        <MouseBinding Gesture="LeftClick" Command="{Binding Path=SelectSingleItemCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                        <MouseBinding Gesture="CTRL+LeftClick"  Command="{Binding Path=SelectItemsRandomlyCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                        <MouseBinding Gesture="SHIFT+LeftClick" Command="{Binding Path=SelectItemsContinuouslyCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
+                        <MouseBinding Gesture="CTRL+SHIFT+LeftClick" Command="{Binding Path=SelectItemsContinuouslyBidirectionallyCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />
                     </ItemsControl.InputBindings>
                     <ItemsControl.RenderTransform>
                     <TransformGroup>

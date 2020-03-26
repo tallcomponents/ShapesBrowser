@@ -263,57 +263,6 @@ namespace TallComponents.Samples.ShapesBrowser
             _overlay.Clear();
         }
 
-        public void Select(ContentShape shape, Modifiers modified)
-        {
-            switch (modified)
-            {
-                case Modifiers.None:
-                {
-                    Deselect();
-                    _startItem = _rootShapeCollection.Select(shape);
-                    break;
-                }
-                case Modifiers.Ctrl:
-                    _startItem = _rootShapeCollection.Select(shape);
-                    break;
-                case Modifiers.Shift:
-                case Modifiers.CtrlShift:
-                {
-                    var list = ViewItems[0].ToList();
-
-                    if (modified != Modifiers.CtrlShift)
-                    {
-                        Deselect();
-                    }
-
-                    var endItem = _rootShapeCollection.Select(shape);
-                    if (endItem == _startItem)
-                    {
-                        return;
-                    }
-
-                    var isBetween = false;
-                    foreach (var item in list)
-                    {
-                        if (item == endItem || item == _startItem)
-                        {
-                            isBetween = !isBetween;
-
-                            item.IsSelected = true;
-                            continue;
-                        }
-
-                        if (isBetween)
-                        {
-                            item.IsSelected = true;
-                        }
-                    }
-
-                    break;
-                }
-            }
-        }
-
         private void OnSelectedItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action == NotifyCollectionChangedAction.Remove)
@@ -515,6 +464,50 @@ namespace TallComponents.Samples.ShapesBrowser
         public IList<ShapeCollectionViewModel> GetSelectedItems()
         {
             return _selectedItemsViewModel;
+        }
+
+        public void SelectSingleItem(ContentShape shape)
+        {
+            Deselect();
+            SelectItemsRandomly(shape);
+        }
+
+        public void SelectItemsRandomly(ContentShape shape)
+        {
+            _startItem = _rootShapeCollection.Select(shape);
+        }
+
+        public void SelectItemsContinuously(ContentShape shape)
+        {
+            Deselect();
+            SelectItemsContinuouslyBidirectionally(shape);
+        }
+
+        public void SelectItemsContinuouslyBidirectionally(ContentShape shape)
+        {
+            var list = ViewItems[0].ToList();
+            var endItem = _rootShapeCollection.Select(shape);
+            if (endItem == _startItem)
+            {
+                return;
+            }
+
+            var isBetween = false;
+            foreach (var item in list)
+            {
+                if (item == endItem || item == _startItem)
+                {
+                    isBetween = !isBetween;
+
+                    item.IsSelected = true;
+                    continue;
+                }
+
+                if (isBetween)
+                {
+                    item.IsSelected = true;
+                }
+            }
         }
     }
 }

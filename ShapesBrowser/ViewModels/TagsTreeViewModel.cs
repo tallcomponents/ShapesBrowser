@@ -88,8 +88,7 @@ namespace TallComponents.Samples.ShapesBrowser
                     if (tagVM.Shape != null && tagVM.IsSelected && !tagVM.Shape.IsSelected)
                     {
                         _suppressTagDeselection = true;
-                        _shapesTreeViewModel.Select(tagVM.Shape.Shape as ContentShape,
-                            Modifiers.Ctrl);
+                        _shapesTreeViewModel.SelectItemsRandomly(tagVM.Shape.Shape as ContentShape);
                     }
                 }
             }

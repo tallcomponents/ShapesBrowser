@@ -12,14 +12,6 @@ using pdf = TallComponents.PDF;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
-    public enum Modifiers
-    {
-        None,
-        Shift,
-        Ctrl,
-        CtrlShift
-    }
-
     internal class MainWindowViewModel : BaseViewModel
     {
         private FixedDocument _fixedDocument;
@@ -44,7 +36,11 @@ namespace TallComponents.Samples.ShapesBrowser
             SaveCommand = new RelayCommand(Save);
             OpenCommand = new RelayCommand(Open);
 
-            DocumentClickCommand = new PositioningCommand(OnMouseClick);
+            SelectSingleItemCommand = new PositioningCommand(OnSelectSingleItem);
+            SelectItemsContinuouslyCommand = new PositioningCommand(OnSelectItemsContinuously);
+            SelectItemsContinuouslyBidirectionallyCommand = new PositioningCommand(OnSelectItemsContinuouslyBidirectionally);
+            SelectItemsRandomlyCommand = new PositioningCommand(OnSelectItemsRandomly);
+
             DeleteShapeCommand = new RelayCommand(OnDelete);
             KeepShapesCommand = new RelayCommand(OnKeepShapes);
 
@@ -57,11 +53,12 @@ namespace TallComponents.Samples.ShapesBrowser
             CanvasItems = new ObservableCollection<RectangleViewModel>();
         }
 
+        public ICommand SelectItemsRandomlyCommand { get; set; }
+        public ICommand SelectItemsContinuouslyBidirectionallyCommand { get; set; }
+        public ICommand SelectItemsContinuouslyCommand { get; set; }
         public ICommand KeepShapesCommand { get; set; }
-
         public ICommand DeleteShapeCommand { get; set; }
-        public ICommand DocumentClickCommand { get; set; }
-
+        public ICommand SelectSingleItemCommand { get; set; }
         public ICommand OpenCommand { get; set; }
         public ICommand SaveCommand { get; set; }
 
@@ -254,12 +251,28 @@ namespace TallComponents.Samples.ShapesBrowser
             DrawPage(prevIndex);
         }
 
-        private void OnMouseClick(Point position, Modifiers modified)
+        private void OnSelectSingleItem(Point position)
         {
             Shape shape = ShapesTreeViewModel.FindShape(null, position);
-            if (null != shape) ShapesTreeViewModel.Select((ContentShape) shape, modified);
+            if (null != shape) ShapesTreeViewModel.SelectSingleItem((ContentShape) shape);
         }
 
+        private void OnSelectItemsContinuously(Point position)
+        {
+            Shape shape = ShapesTreeViewModel.FindShape(null, position);
+            if (null != shape) ShapesTreeViewModel.SelectItemsContinuously((ContentShape)shape);
+        }
+        private void OnSelectItemsContinuouslyBidirectionally(Point position)
+        {
+            Shape shape = ShapesTreeViewModel.FindShape(null, position);
+            if (null != shape) ShapesTreeViewModel.SelectItemsContinuouslyBidirectionally((ContentShape)shape);
+        }
+
+        private void OnSelectItemsRandomly(Point position)
+        {
+            Shape shape = ShapesTreeViewModel.FindShape(null, position);
+            if (null != shape) ShapesTreeViewModel.SelectItemsRandomly((ContentShape)shape);
+        }
         private void Open()
         {
             _dialogBoxService.Filter = "PDF files (*.pdf)|*.pdf";
