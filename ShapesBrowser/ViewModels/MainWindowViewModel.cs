@@ -41,6 +41,7 @@ namespace TallComponents.Samples.ShapesBrowser
             SelectItemsContinuouslyBidirectionallyCommand = new PositioningCommand(OnSelectItemsContinuouslyBidirectionally);
             SelectItemsRandomlyCommand = new PositioningCommand(OnSelectItemsRandomly);
 
+            ViewShapePropertiesCommand = new RelayCommand(OnViewProperties);
             DeleteShapeCommand = new RelayCommand(OnDelete);
             KeepShapesCommand = new RelayCommand(OnKeepShapes);
 
@@ -53,6 +54,8 @@ namespace TallComponents.Samples.ShapesBrowser
             CanvasItems = new ObservableCollection<RectangleViewModel>();
         }
 
+        public ICommand ViewShapePropertiesCommand { get; set; }
+        
         public ICommand SelectItemsRandomlyCommand { get; set; }
         public ICommand SelectItemsContinuouslyBidirectionallyCommand { get; set; }
         public ICommand SelectItemsContinuouslyCommand { get; set; }
@@ -236,6 +239,13 @@ namespace TallComponents.Samples.ShapesBrowser
                 pdfOut.Pages.Add(page == selectedPage ? Copy(page, root[0] as ShapeCollection) : Copy(page));
             }
             ReloadFile(pdfOut);
+        }
+
+        private void OnViewProperties()
+        {
+            var selectedItems = ShapesTreeViewModel.GetSelectedItems();
+            var shapeProperties = new ShapePropertiesViewModel(selectedItems[0].Shape);
+            _dialogBoxService.ShowWindow(shapeProperties);
         }
 
         private void ReloadFile(pdf.Document pdfOut)

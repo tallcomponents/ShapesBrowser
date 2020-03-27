@@ -6,5 +6,7 @@
         string OpenFileDialog(string defaultPath);
         string SaveFileDialog(string defaultPath);
         void ShowMessage(string message);
+        void ShowWindow(object viewModel);
+        void Register<TViewModel, TView>();
     }
 }

@@ -9,6 +9,7 @@
         Title="Shapes browser" Height="722" Width="1375">
     <Window.InputBindings>
         <KeyBinding Key="Delete" Command="{Binding DeleteShapeCommand}" />
+        <KeyBinding Key="Enter" Command="{Binding ViewShapePropertiesCommand}" />
         <KeyBinding Key="Delete" Modifiers="Alt" Command="{Binding Path=KeepShapesCommand}"/>
     </Window.InputBindings>
     <Window.Resources>

@@ -9,6 +9,7 @@ namespace TallComponents.Samples.ShapesBrowser
         public MainWindowView()
         {
             IDialogBoxService dialogBoxService = new DialogBoxService();
+            dialogBoxService.Register<ShapePropertiesViewModel, ShapePropertiesView>();
             InitializeComponent();
             DataContext = new MainWindowViewModel(dialogBoxService);
         }
