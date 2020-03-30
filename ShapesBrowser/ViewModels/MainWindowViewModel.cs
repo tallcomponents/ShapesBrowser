@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -244,7 +245,9 @@ namespace TallComponents.Samples.ShapesBrowser
         private void OnViewProperties()
         {
             var selectedItems = ShapesTreeViewModel.GetSelectedItems();
-            var shapeProperties = new ShapePropertiesViewModel(selectedItems[0].Shape);
+            var selectedItem = selectedItems.FirstOrDefault();
+            if (selectedItem == null) return;
+            var shapeProperties = new ShapePropertiesViewModel(selectedItem.Shape);
             _dialogBoxService.ShowWindow(shapeProperties);
         }
 
