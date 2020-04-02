@@ -1,70 +1,61 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using pdf = TallComponents.PDF;
 
 namespace TallComponents.Samples.ShapesBrowser
 {
     internal class Loader
     {
-        private pdf.Document _currentDocument;
-        private FileStream _currentFile;
-        private string _currentPath;
-        private string _tempPath;
+        private List<FileStream> _currentFiles = new List<FileStream>();
+        private List<string> _tempPaths = new List<string>();
 
-        public void CloseCurrentFile()
+        public void CloseCurrentFile(int index, bool reload = false)
         {
-            if (null != _currentFile)
+            if (_currentFiles.Count > index)
             {
-                _currentDocument.Close();
-                _currentFile.Flush();
-                _currentFile.Close();
-                _currentFile.Dispose();
-                _currentFile = null;
-                _currentDocument = null;
-                _currentPath = null;
+                _currentFiles[index].Dispose();
+                if(!reload)
+                {
+
+                _currentFiles.RemoveAt(index);
+                _tempPaths.RemoveAt(index);
+                }
             }
         }
 
-        public pdf.Document GetCurrentDocument()
+        public pdf.Document Open(string path, int index)
         {
-            return _currentDocument;
+            MakeTempFile(path, index);
+            return OpenTempFile(index);
         }
 
-        public void Open(string path)
+        public pdf.Document OpenTempFile(int index)
         {
-            _currentPath = path;
-            MakeTempFile();
-            OpenTempFile();
+            if (_currentFiles.Count <= index)
+                _currentFiles.Add(new FileStream(_tempPaths[index], FileMode.Open, FileAccess.ReadWrite));
+            else
+                _currentFiles[index] = new FileStream(_tempPaths[index], FileMode.Open, FileAccess.ReadWrite);
+
+            return new pdf.Document(_currentFiles[index]);
         }
 
-        public void OpenFile(string path)
-        {
-            _currentFile = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            _currentDocument = new pdf.Document(_currentFile);
-        }
-
-        public void OpenTempFile()
-        {
-            _currentFile = new FileStream(_tempPath, FileMode.Open, FileAccess.ReadWrite);
-            _currentDocument = new pdf.Document(_currentFile);
-        }
-
-        public void Save(string path)
+        public void Save(string path, pdf.Document document)
         {
             using (var file = new FileStream(path, FileMode.Create, FileAccess.Write))
             {
-                _currentDocument.Write(file);
+                document.Write(file);
             }
         }
 
-        public void SaveTempFile(pdf.Document tempDocument)
+        public void SaveTempFile(pdf.Document tempDocument, int index)
         {
-            tempDocument.Write(_currentFile);
+            tempDocument.Write(_currentFiles[index]);
         }
 
-        private void MakeTempFile()
+        private void MakeTempFile(string _currentPath, int index)
         {
-            _tempPath = Path.GetTempFileName();
-            File.Copy(_currentPath, _tempPath, true);
+            _tempPaths.Add(Path.GetTempFileName());
+            File.Copy(_currentPath, _tempPaths[index], true);
         }
     }
 }

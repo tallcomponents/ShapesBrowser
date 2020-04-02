@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Documents;
@@ -18,11 +19,12 @@ namespace TallComponents.Samples.ShapesBrowser
         private FixedDocument _fixedDocument;
         private pdf.PageCollection _itemSource;
         private int _selectedIndex;
+        private int _selectedTabIndex;
         private pdf.Page _selectedItem;
-        private pdf.Document _currentDocument;
         private readonly Loader _loader = new Loader();
         private readonly IDialogBoxService _dialogBoxService;
         private ObservableCollection<RectangleViewModel> _canvasItems;
+        private ObservableCollection<TabItemViewModel> _tabs;
         private double _pageOrientation;
         private double _translateX;
         private double _translateY;
@@ -36,6 +38,7 @@ namespace TallComponents.Samples.ShapesBrowser
             _dialogBoxService = dialogBoxService;
             SaveCommand = new RelayCommand(Save);
             OpenCommand = new RelayCommand(Open);
+            CloseTabCommand = new RelayCommand<TabItemViewModel>(CloseTab);
 
             SelectSingleItemCommand = new PositioningCommand(OnSelectSingleItem);
             SelectItemsContinuouslyCommand = new PositioningCommand(OnSelectItemsContinuously);
@@ -53,10 +56,12 @@ namespace TallComponents.Samples.ShapesBrowser
             TagsTreeViewModel.SetShapesTree(ShapesTreeViewModel);
             ShapesTreeViewModel.SetTagsTree(TagsTreeViewModel);
             CanvasItems = new ObservableCollection<RectangleViewModel>();
+            Tabs = new ObservableCollection<TabItemViewModel>();
+
+            ShapesTreeViewModel.SetCanvas(CanvasItems);
         }
 
         public ICommand ViewShapePropertiesCommand { get; set; }
-        
         public ICommand SelectItemsRandomlyCommand { get; set; }
         public ICommand SelectItemsContinuouslyBidirectionallyCommand { get; set; }
         public ICommand SelectItemsContinuouslyCommand { get; set; }
@@ -64,7 +69,14 @@ namespace TallComponents.Samples.ShapesBrowser
         public ICommand DeleteShapeCommand { get; set; }
         public ICommand SelectSingleItemCommand { get; set; }
         public ICommand OpenCommand { get; set; }
+        public ICommand CloseTabCommand { get; }
         public ICommand SaveCommand { get; set; }
+
+        public ObservableCollection<TabItemViewModel> Tabs
+        {
+            get => _tabs;
+            set => SetProperty(ref _tabs, value);
+        }
 
         public double PageOrientation
         {
@@ -126,6 +138,16 @@ namespace TallComponents.Samples.ShapesBrowser
             set => SetProperty(ref _selectedIndex, value);
         }
 
+        public int SelectedTabIndex
+        {
+            get => _selectedTabIndex;
+            set
+            {
+                SetProperty(ref _selectedTabIndex, value);
+                SelectedTabIndexChanged();
+             }
+        }
+
         public pdf.Page SelectedItem
         {
             get => _selectedItem;
@@ -142,7 +164,7 @@ namespace TallComponents.Samples.ShapesBrowser
             set => SetProperty(ref _canvasItems, value);
         }
 
-        public ShapesTreeViewModel ShapesTreeViewModel { get; }
+        public ShapesTreeViewModel ShapesTreeViewModel { get; set; }
         public TagsTreeViewModel TagsTreeViewModel { get; }
         public RecentFilesMenuListViewModel RecentFilesMenuListViewModel { get; }
 
@@ -150,10 +172,9 @@ namespace TallComponents.Samples.ShapesBrowser
         {
             try
             {
-                _loader.Open(arg);
                 AfterOpen(arg);
             }
-            catch (Exception ex)
+            catch (FileNotFoundException ex)
             {
                 RecentFilesMenuListViewModel.RemoveFile(arg);
                 _dialogBoxService.ShowMessage(ex.Message);
@@ -165,19 +186,20 @@ namespace TallComponents.Samples.ShapesBrowser
             var newPage = new pdf.Page(page.Width, page.Height);
             var shapes = shapeCollection ?? page.CreateShapes();
             newPage.Overlay.Add(shapes);
+
             return newPage;
         }
 
         private void DrawPage(int index)
         {
-            var page = _currentDocument.Pages[index];
+            var currentTabDocument = Tabs[SelectedTabIndex].Document;
+            var page = currentTabDocument.Pages[index];
             var renderSettings = new RenderSettings();
             var summary = new Summary();
             var convertOptions = new ConvertToWpfOptions();
-            var fixedDocument = _currentDocument.ConvertToWpf(renderSettings, convertOptions, index, index, summary);
-            FixedDocument = fixedDocument;
+            var fixedDocument = currentTabDocument.ConvertToWpf(renderSettings, convertOptions, index, index, summary);
+            Tabs[SelectedTabIndex].FixedDocument = fixedDocument;
             var fixedPage = fixedDocument.Pages[0].Child;
-            ShapesTreeViewModel.SetCanvas(CanvasItems);
 
             PageOrientation = 0;
             TranslateX = 0;
@@ -210,15 +232,15 @@ namespace TallComponents.Samples.ShapesBrowser
 
         private void InitializePagesList()
         {
-            if (null == _currentDocument) return;
-            ItemsSource = _currentDocument.Pages;
+            if (SelectedTabIndex == -1) return;
+            ItemsSource = Tabs[SelectedTabIndex].Document.Pages;
         }
 
         private void OnKeepShapes()
         {
             var pdfOut = new pdf.Document(); ;
             var selectedItems = ShapesTreeViewModel.GetSelectedItems();
-            var page = _currentDocument.Pages[SelectedIndex];
+            var page = Tabs[SelectedTabIndex].Document.Pages[SelectedIndex];
             var newPage = new pdf.Page(page.Width, page.Height);
 
             foreach (var shapeCollectionViewModel in selectedItems)
@@ -235,7 +257,7 @@ namespace TallComponents.Samples.ShapesBrowser
             var root = ShapesTreeViewModel.GetRoot();
             var pdfOut = new pdf.Document();
             var selectedPage = SelectedItem;
-            foreach (var page in _currentDocument.Pages)
+            foreach (var page in Tabs[SelectedTabIndex].Document.Pages)
             {
                 pdfOut.Pages.Add(page == selectedPage ? Copy(page, root[0] as ShapeCollection) : Copy(page));
             }
@@ -253,12 +275,12 @@ namespace TallComponents.Samples.ShapesBrowser
 
         private void ReloadFile(pdf.Document pdfOut)
         {
-            _loader.SaveTempFile(pdfOut);
-            _loader.CloseCurrentFile();
+            _loader.SaveTempFile(pdfOut, SelectedTabIndex);
+            Tabs[SelectedTabIndex].Document.Close();
+            _loader.CloseCurrentFile(SelectedTabIndex, true);
             var prevIndex = SelectedIndex;
-            _loader.OpenTempFile();
-            _currentDocument = _loader.GetCurrentDocument();
-            TagsTreeViewModel.Initialize(_currentDocument);
+            Tabs[SelectedTabIndex].Document = _loader.OpenTempFile(SelectedTabIndex);
+            TagsTreeViewModel.Initialize(Tabs[SelectedTabIndex].Document);
             InitializePagesList();
             SelectedIndex = prevIndex;
             DrawPage(prevIndex);
@@ -292,16 +314,20 @@ namespace TallComponents.Samples.ShapesBrowser
             var fileName = _dialogBoxService.OpenFileDialog(string.Empty);
             if (string.IsNullOrEmpty(fileName)) return;
 
-            _loader.Open(fileName);
             AfterOpen(fileName);
         }
 
         private void AfterOpen(string filePath)
         {
-            _currentDocument = _loader.GetCurrentDocument();
+            var _currentDocument = _loader.Open(filePath, Tabs.Count);
             RecentFilesMenuListViewModel.AddFilePath(filePath);
             TagsTreeViewModel.Initialize(_currentDocument);
             OnPropertyChanged(nameof(TagsTreeViewModel));
+
+            var header = string.IsNullOrEmpty(_currentDocument.DocumentInfo.Title) ? "[no title]" : _currentDocument.DocumentInfo.Title;
+            var item = new TabItemViewModel { Header = header, Document = _currentDocument };
+            Tabs.Add(item);
+            SelectedTabIndex = Tabs.Count - 1;
             InitializePagesList();
             SelectedIndex = 0;
             DrawPage(0);
@@ -313,7 +339,7 @@ namespace TallComponents.Samples.ShapesBrowser
             var fileName = _dialogBoxService.SaveFileDialog(string.Empty);
             if (string.IsNullOrEmpty(fileName)) return;
 
-            _loader.Save(fileName);
+            _loader.Save(fileName, Tabs[SelectedTabIndex].Document);
         }
 
         private void SelectionChanged()
@@ -321,6 +347,26 @@ namespace TallComponents.Samples.ShapesBrowser
             if (!(SelectedItem is pdf.Page page)) return;
             ShapesTreeViewModel.Initialize(page);
             DrawPage(page.Index);
+            SelectedIndex = page.Index;
+        }
+
+        private void SelectedTabIndexChanged()
+        {
+            if (!(SelectedItem is pdf.Page page) || SelectedTabIndex == -1) return;
+            ShapesTreeViewModel.Initialize(page);
+            InitializePagesList();
+            SelectedIndex = page.Index;
+            DrawPage(page.Index);
+        }
+
+        private void CloseTab(TabItemViewModel index)
+        {
+            _loader.CloseCurrentFile(Tabs.IndexOf(index));
+            Tabs.Remove(index);
+            if (Tabs.Count != 0) return;
+            ItemsSource = null;
+            ShapesTreeViewModel.Clear();
+            TagsTreeViewModel.Clear();
         }
     }
 }

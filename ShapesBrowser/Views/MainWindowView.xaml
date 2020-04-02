@@ -142,9 +142,25 @@
                 ShowsPreview="True"
                 Width="3">
             </GridSplitter>
+            <TabControl SelectedIndex="{Binding SelectedTabIndex}" ItemsSource="{Binding Tabs, Mode=TwoWay}" Grid.Column="4">
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Header}" />
+                            <Button Content="X" Cursor="Hand" DockPanel.Dock="Right" Focusable="False" FontFamily="Courier"
+                                    FontSize="9" FontWeight="Bold"  Margin="0,1,0,0" Padding="0"  VerticalContentAlignment="Bottom" Width="16" Height="16"
+                                    Command="{Binding DataContext.CloseTabCommand,RelativeSource={RelativeSource AncestorType={x:Type Window}}}" CommandParameter="{Binding}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
 
-            <src:DocumentViewerEx Grid.Column="4" Document="{Binding FixedDocument}" AttachToPage="{Binding ElementName=CanvasWrapper}">
-            </src:DocumentViewerEx >
+                <TabControl.ContentTemplate>
+                    <DataTemplate>
+                        <src:DocumentViewerEx AttachToPage="{Binding ElementName=CanvasWrapper}" Document="{Binding FixedDocument}" >
+                        </src:DocumentViewerEx >
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+            </TabControl>
             <ItemsControl Name="CanvasWrapper" Grid.Column="4" ItemsSource="{Binding CanvasItems}">
                     <ItemsControl.InputBindings>
                         <MouseBinding Gesture="LeftClick" Command="{Binding Path=SelectSingleItemCommand}" CommandParameter="{Binding ElementName=CanvasWrapper}" />

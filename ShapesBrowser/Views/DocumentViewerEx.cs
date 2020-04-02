@@ -16,10 +16,11 @@ namespace TallComponents.Samples.ShapesBrowser
 
         public static readonly DependencyProperty AttachToPageProperty =
             DependencyProperty.RegisterAttached("AttachToPage", typeof(FrameworkElement), typeof(DocumentViewerEx));
-        
         protected override void OnDocumentChanged()
         {
             base.OnDocumentChanged();
+
+            if (Document == null) return;
             var fixedPage = (Document as FixedDocument)?.Pages[0].Child;
             var dc = AttachToPage.DataContext;
             AttachToPage.Width = fixedPage.Width ;
