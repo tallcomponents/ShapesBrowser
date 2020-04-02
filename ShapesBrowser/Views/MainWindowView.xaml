@@ -11,6 +11,15 @@
         <KeyBinding Key="Delete" Command="{Binding DeleteShapeCommand}" />
         <KeyBinding Key="Enter" Command="{Binding ViewShapePropertiesCommand}" />
         <KeyBinding Key="Delete" Modifiers="Alt" Command="{Binding Path=KeepShapesCommand}"/>
+        <KeyBinding Key="D1" CommandParameter="0" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
+        <KeyBinding Key="D2" CommandParameter="1" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
+        <KeyBinding Key="D3" CommandParameter="2" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
+        <KeyBinding Key="D4" CommandParameter="3" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
+        <KeyBinding Key="D5" CommandParameter="4" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
+        <KeyBinding Key="D6" CommandParameter="5" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
+        <KeyBinding Key="D7" CommandParameter="6" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
+        <KeyBinding Key="D8" CommandParameter="7" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
+        <KeyBinding Key="D9" CommandParameter="8" Modifiers="Ctrl" Command="{Binding SelectTabCommand}"/>
     </Window.InputBindings>
     <Window.Resources>
 

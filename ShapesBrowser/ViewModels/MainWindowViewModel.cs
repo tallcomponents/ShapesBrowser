@@ -39,6 +39,7 @@ namespace TallComponents.Samples.ShapesBrowser
             SaveCommand = new RelayCommand(Save);
             OpenCommand = new RelayCommand(Open);
             CloseTabCommand = new RelayCommand<TabItemViewModel>(CloseTab);
+            SelectTabCommand = new RelayCommand<string>(OnSelectTab);
 
             SelectSingleItemCommand = new PositioningCommand(OnSelectSingleItem);
             SelectItemsContinuouslyCommand = new PositioningCommand(OnSelectItemsContinuously);
@@ -61,6 +62,16 @@ namespace TallComponents.Samples.ShapesBrowser
             ShapesTreeViewModel.SetCanvas(CanvasItems);
         }
 
+        private void OnSelectTab(string tabIndex)
+        {
+            int index = int.Parse(tabIndex);
+            if(index >= Tabs.Count)
+            {
+                index = Tabs.Count - 1;
+            }
+            SelectedTabIndex = index;
+        }
+
         public ICommand ViewShapePropertiesCommand { get; set; }
         public ICommand SelectItemsRandomlyCommand { get; set; }
         public ICommand SelectItemsContinuouslyBidirectionallyCommand { get; set; }
@@ -70,6 +81,7 @@ namespace TallComponents.Samples.ShapesBrowser
         public ICommand SelectSingleItemCommand { get; set; }
         public ICommand OpenCommand { get; set; }
         public ICommand CloseTabCommand { get; }
+        public ICommand SelectTabCommand { get; }
         public ICommand SaveCommand { get; set; }
 
         public ObservableCollection<TabItemViewModel> Tabs
