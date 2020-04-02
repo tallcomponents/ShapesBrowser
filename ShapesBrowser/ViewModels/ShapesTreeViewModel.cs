@@ -461,6 +461,11 @@ namespace TallComponents.Samples.ShapesBrowser
             return ret;
         }
 
+        public void Clear()
+        {
+            ViewItems.Clear();
+        }
+
         public IList<ShapeCollectionViewModel> GetSelectedItems()
         {
             return _selectedItemsViewModel;

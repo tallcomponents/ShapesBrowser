@@ -94,5 +94,10 @@ namespace TallComponents.Samples.ShapesBrowser
             }
             _suppressChangeEvent = false;
         }
+
+        public void Clear()
+        {
+            ViewItems.Clear();
+        }
     }
 }
